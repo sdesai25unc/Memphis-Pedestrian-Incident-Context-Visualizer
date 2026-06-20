@@ -1,0 +1,26 @@
+{
+ "corridor": "UNION AVE",
+ "ref_mi": 4.61,
+ "n_safe": 24,
+ "n_signalized": 17,
+ "n_marked_only": 7,
+ "longest_gap_ft": 2921,
+ "median_spacing_ft": 804,
+ "n_crash": 41,
+ "n_fatal": 8,
+ "n_crossing_rel": 36,
+ "mean_ft": 152,
+ "median_ft": 4,
+ "pct_over_250ft": 22,
+ "n_over_250ft": 8,
+ "node_nearest_safe_m": {
+  "2467": 20.3,
+  "2477": 18.1,
+  "6806": 1.2,
+  "7203": 22.4,
+  "7211": 22.8,
+  "7701": 108.6,
+  "7815": 108.9,
+  "7922": 108.9
+ }
+}

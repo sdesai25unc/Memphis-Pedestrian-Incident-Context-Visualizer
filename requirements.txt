@@ -1,0 +1,12 @@
+# Python packages this project needs.
+# Install with:  .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+requests==2.32.3
+pandas==2.2.3
+
+# Added in Phase 3+4 for the spatial join (roads + boundary classification).
+# geopandas 1.x reads/writes GeoJSON through pyogrio, so fiona is not required.
+geopandas==1.1.3
+shapely==2.1.2
+pyproj==3.7.2
+pyogrio==0.12.1
+arcgis2geojson==3.1.1

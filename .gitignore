@@ -1,0 +1,25 @@
+# ── Python virtual environment & caches ───────────────────────────
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ── OS / editor junk ──────────────────────────────────────────────
+.vscode/
+desktop.ini
+.DS_Store
+Thumbs.db
+
+# ── Raw API page-dumps (intermediate scratch) ─────────────────────
+# The consolidated .geojson files are the usable form and are kept.
+# These raw pages are re-downloaded by scripts 01 / 02 / 05.
+data/raw/*_page_*.json
+data/raw/memphis_boundary.json
+
+# ── Large regenerable data (rebuilt by script 05) ─────────────────
+# 91 MB full street network; excluded to keep the repo light.
+data/raw/memphis_streets.geojson
+
+# ── Loose non-deliverable files ───────────────────────────────────
+Memphis Pedestrian Gap.pdf

@@ -1,0 +1,47 @@
+StateRoute_NAME,segments,sr_number,func_class
+A W WILLIS AVE,8,1,
+AIRWAYS BLVD,19,277,Principal Arterial
+AUSTIN PEAY HWY,23,14,Principal Arterial
+CHELSEA AVE,9,3,Minor Arterial
+COVINGTON PIKE,33,204,Principal Arterial
+DR MARTIN LUTHER KING JR,1,,Minor Arterial
+DR MARTIN LUTHER KING JR AVE,19,208,Minor Arterial
+E E H CRUMP BLVD,47,4,Principal Arterial
+E G E PATTERSON AVE,2,14,Major Collector
+E PARKWAY,51,277,Principal Arterial
+E SHELBY DR,88,175,Minor Arterial
+ELVIS PRESLEY BLVD,83,3,Principal Arterial
+GETWELL RD,34,176,Principal Arterial
+JACKSON AVE,125,14,Principal Arterial
+JAMES RD,3,15,Principal Arterial
+LAMAR AVE,162,4,Principal Arterial
+N DANNY THOMAS BLVD,28,1,Principal Arterial
+N GERMANTOWN PKWY,48,177,Principal Arterial
+N GERMANTOWN RD,1,177,Principal Arterial
+N PARKWAY,60,1,Minor Arterial
+N SECOND ST,28,3,Minor Arterial
+N THIRD ST,30,3,Minor Arterial
+N TREZEVANT ST,6,57,Minor Arterial
+N US HIGHWAY 51,5,3,Principal Arterial
+NEW COVINGTON PIKE,1,204,
+NEW GETWELL RD,30,176,Principal Arterial
+OLD HIGHWAY 78,5,OLD HIGHWAY 78 AVE,Major Collector
+POPLAR AVE,109,57,Principal Arterial
+S BELLEVUE BLVD,36,3,Major Collector
+S DANNY THOMAS BLVD,28,1,Principal Arterial
+S GERMANTOWN PKWY,6,177,Principal Arterial
+S GERMANTOWN RD,16,177,Principal Arterial
+S SECOND ST,19,14,Minor Arterial
+S SOMERVILLE ST,6,208,Minor Arterial
+S THIRD ST,98,14,Minor Arterial
+STAGE RD,20,15,Principal Arterial
+STATE ROUTE 385,32,NONCONNAH PKWY,Freeway and Expressway
+SUMMER AVE,82,1,Principal Arterial
+THOMAS ST,62,3,Principal Arterial
+UNION AVE,77,23,Principal Arterial
+US HIGHWAY 64,20,15,Principal Arterial
+US HIGHWAY 70,1,1,Principal Arterial
+W E H CRUMP BLVD,3,1,Principal Arterial
+W SHELBY DR,11,175,Minor Arterial
+WALNUT GROVE RD,71,23,Minor Arterial
+WEAVER RD,6,175,Minor Arterial
