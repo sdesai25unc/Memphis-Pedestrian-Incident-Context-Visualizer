@@ -127,5 +127,6 @@ Built by **Samarth Desai**.
 <!-- ✏️ PERSONALIZE: one or two sentences on *why* you built this — fellowship/startup reviewers weigh this heavily. Draft to edit: -->
 > I built this because Memphis's pedestrian deaths are too often written off as individual mistakes, when the data points to roads engineered in ways that make those deaths predictable. I wanted a tool that lets journalists and advocates *see* — and cite — where the responsibility actually sits.
 
-<!-- ✏️ ADD YOUR CONTACT: email · LinkedIn · portfolio -->
-- GitHub: [@sdesai25unc](https://github.com/sdesai25unc)
+- **Email:** [sdesai25@unc.edu](mailto:sdesai25@unc.edu)
+- **LinkedIn:** [linkedin.com/in/samarthdesai06](https://www.linkedin.com/in/samarthdesai06)
+- **GitHub:** [@sdesai25unc](https://github.com/sdesai25unc)
