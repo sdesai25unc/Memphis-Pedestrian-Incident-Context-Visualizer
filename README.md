@@ -29,7 +29,7 @@ Memphis has one of the worst pedestrian fatality rates in the United States, and
 - **Interactive map** — every crash as an individual dot, colored by road owner (City / TDOT state route / limited-access), deaths emphasized; layer toggles, a fatal-only filter, a "hotspots" intensity view, and a TDOT signalized-crossing layer.
 - **Jurisdiction analysis** — a documented, rulebook-driven classifier tags every road segment by owner and attributes each crash to it, with per-crash provenance.
 - **Signal & crossing layers** — the TDOT pedestrian-signal inventory plus OpenStreetMap crosswalks, with an along-corridor distance-to-crossing analysis.
-- **Search** — type-ahead lookup of any corridor or intersection, with a clean stat card and map highlight (address search is wired but pending a backend — see [roadmap](#-status--roadmap)).
+- **Search** — type-ahead lookup of any corridor or any of the **25,533 street junctions citywide** (built from true geometric centerline intersection, with divided-arterial carriageways consolidated to one node), each with a clean stat card and map highlight; a junction with no recorded crashes returns an honest *"0 incidents reported here,"* never a blank. Address search is wired but pending a backend — see [roadmap](#-status--roadmap).
 - **Findings dashboard** — charts and the deadliest-corridor table, all computed from the data.
 
 ## Methodology — how the data works
@@ -66,7 +66,7 @@ The jurisdiction classifier (`scripts/17_classifier.py`) tags each centerline se
 ## 📁 Repo structure
 
 ```
-scripts/         # numbered, reproducible pipeline (01–24): download → classify → analyze → build
+scripts/         # numbered, reproducible pipeline (01–25): download → classify → analyze → build
 data/
   raw/           # API downloads (geojson/csv); the 91 MB street network + page-dumps are .gitignored
   processed/     # deduped + classified crashes, the road-ownership rulebook, audit outputs
@@ -89,9 +89,10 @@ py -m venv .venv
 # 2. (optional) regenerate the large gitignored street network (~91 MB)
 .\.venv\Scripts\python.exe scripts\05_download_streets.py
 
-# 3. run the pipeline (scripts run in numeric order, 01 → 24); the key build steps:
+# 3. run the pipeline (scripts run in numeric order, 01 → 25); the key build steps:
 .\.venv\Scripts\python.exe scripts\17_classifier.py          # classify crashes by road owner
 .\.venv\Scripts\python.exe scripts\18_build_public_map.py    # build the map + dashboard
+.\.venv\Scripts\python.exe scripts\25_rebuild_junctions.py   # rebuild every junction (true intersection)
 .\.venv\Scripts\python.exe scripts\24_build_search.py        # add the search index + UI
 
 # 4. view it — serve over http so EVERY feature works
@@ -124,7 +125,6 @@ py -m venv .venv
 
 Built by **Samarth Desai**.
 
-<!-- ✏️ PERSONALIZE: one or two sentences on *why* you built this — fellowship/startup reviewers weigh this heavily. Draft to edit: -->
 > I built this because Memphis's pedestrian deaths are too often written off as individual mistakes, when the data points to roads engineered in ways that make those deaths predictable. I wanted a tool that lets journalists and advocates *see* — and cite — where the responsibility actually sits.
 
 - **Email:** [sdesai25@unc.edu](mailto:sdesai25@unc.edu)

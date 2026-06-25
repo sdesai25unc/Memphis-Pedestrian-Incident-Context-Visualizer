@@ -41,7 +41,9 @@ INDEX_JSON = PROC / "search_index.json"
 
 FINAL = PROC / "shelby_crashes_final.csv"
 SIGNALS = PROC / "shelby_crashes_signals.csv"
-NODES = PROC / "intersection_nodes_covered.geojson"
+NODES = PROC / "intersection_nodes_all.geojson"        # EVERY junction citywide (script 25)
+NODES_COVERED = PROC / "intersection_nodes_covered.geojson"  # old covered set (for Union safe-dist transfer)
+COVERED_OUT = PROC / "covered_corridors.json"           # authoritative covered-corridor set (script 25)
 RULEBOOK = PROC / "road_ownership_rulebook.geojson"
 UNION_SUM = PROC / "union_safe_summary.json"
 
@@ -78,15 +80,18 @@ def build_index():
     ranked["rank"] = range(1, len(ranked) + 1)
     rank_map = dict(zip(ranked["Street_Name"], ranked["rank"]))
 
-    # signalized intersections per corridor (covered corridors only)
+    # ALL junctions citywide (script 25 -- true geometric intersection)
     nodes = gpd.read_file(NODES)
     nodes_geo = nodes.to_crs(CRS_GEO)
-    sig_count, covered = {}, set()
+    # covered corridors come from script 25's sidecar (authoritative); a corridor not in this
+    # set has no signal inventory -> n_signalized stays None ("not yet analyzed").
+    covered = set(json.loads(COVERED_OUT.read_text())) if COVERED_OUT.exists() else set()
+    sig_count = {}
     for _, nd in nodes.iterrows():
-        sts = [s.strip() for s in str(nd["streets"]).split(";") if s.strip()]
-        for s in sts:
-            covered.add(s)
-            if nd["signalized"]:
+        if not bool(nd["signalized"]):
+            continue
+        for s in [s.strip() for s in str(nd["streets"]).split(";") if s.strip()]:
+            if s in covered:
                 sig_count[s] = sig_count.get(s, 0) + 1
 
     union = json.loads(UNION_SUM.read_text()) if UNION_SUM.exists() else {}
@@ -95,7 +100,23 @@ def build_index():
         "n_marked_only": union.get("n_marked_only"), "longest_gap_ft": union.get("longest_gap_ft"),
         "pct_over_250ft": union.get("pct_over_250ft"), "median_spacing_ft": union.get("median_spacing_ft"),
     } if union else None
+    # Union per-node nearest-safe distances were keyed by the OLD covered-node ids; transfer them
+    # to the rebuilt Union nodes by location (nearest old covered node within 25 m).
     union_node_dist = {int(k): v for k, v in union.get("node_nearest_safe_m", {}).items()}
+    new_union_safe_m = {}
+    if union_node_dist and NODES_COVERED.exists():
+        oldc = gpd.read_file(NODES_COVERED).to_crs(CRS_M)
+        oldc = oldc[oldc["node_id"].isin(union_node_dist.keys())].copy()
+        oldc["safe_m"] = oldc["node_id"].map(union_node_dist)
+        new_union = nodes.to_crs(CRS_M)
+        new_union = new_union[new_union["streets"].str.contains("UNION AVE", na=False)]
+        if len(oldc) and len(new_union):
+            mt = gpd.sjoin_nearest(new_union[["node_id", "geometry"]],
+                                   oldc[["safe_m", "geometry"]], how="left", distance_col="d")
+            mt = mt[~mt.index.duplicated(keep="first")]
+            for nid, sm, d in zip(mt["node_id"], mt["safe_m"], mt["d"]):
+                if d <= 25:
+                    new_union_safe_m[int(nid)] = float(sm)
 
     # corridor centerlines (simplified) for highlight + address nearest-corridor
     rb = gpd.read_file(RULEBOOK).to_crs(CRS_M)
@@ -123,34 +144,27 @@ def build_index():
             "geom": paths,
         })
 
-    # intersections: covered nodes with >=1 crash OR signalized
-    cs = pd.read_csv(SIGNALS)
-    cn = cs[cs["intersection_node_id"].notna()].copy()
-    cn["intersection_node_id"] = cn["intersection_node_id"].astype(int)
-    per = cn.groupby("intersection_node_id").agg(
-        crashes=("MstrRecNbrTxt", "size"),
-        deaths=("InjuryClass", lambda s: int((s == FATAL).sum()))).to_dict("index")
-
+    # intersections: EVERY junction citywide (crash counts/deaths/signalized precomputed by script 25).
+    # Packed as compact arrays [disp, lat, lon, crashes, deaths, sig, near_safe_ft] to keep the
+    # embedded index small; sig in {"y": signalized, "n": covered+unsignalized, "u": no signal coverage}.
+    # 0-crash nodes are INCLUDED and searchable (they honestly report "0 incidents reported here").
     intersections = []
+    with_crash = 0
     for _, nd in nodes_geo.iterrows():
         nid = int(nd["node_id"])
-        has_crash = nid in per
-        if not (has_crash or bool(nd["signalized"])):
-            continue
         sts = [titlecase_street(s.strip()) for s in str(nd["streets"]).split(";") if s.strip()]
         c = nd.geometry.centroid
-        intersections.append({
-            "id": nid, "disp": " & ".join(sts), "streets": sts,
-            "crashes": int(per[nid]["crashes"]) if has_crash else 0,
-            "deaths": int(per[nid]["deaths"]) if has_crash else 0,
-            "sig": "yes" if nd["signalized"] else "no",
-            "near_safe_ft": (round(union_node_dist[nid] / 0.3048) if nid in union_node_dist else None),
-            "lat": round(c.y, 6), "lon": round(c.x, 6),
-        })
+        cr = int(nd["crashes"]); dt = int(nd["deaths"])
+        if cr:
+            with_crash += 1
+        sig = "y" if bool(nd["signalized"]) else ("n" if bool(nd["on_covered"]) else "u")
+        nsf = new_union_safe_m.get(nid)
+        intersections.append([" & ".join(sts), round(c.y, 5), round(c.x, 5), cr, dt, sig,
+                              (round(nsf / 0.3048) if nsf is not None else None)])
 
     idx = {"corridors": corridors, "intersections": intersections,
            "meta": {"n_corridors": len(corridors), "n_intersections": len(intersections),
-                    "total_crashes": int(f.shape[0])}}
+                    "n_intersections_with_crash": with_crash, "total_crashes": int(f.shape[0])}}
     return idx, f, agg
 
 
@@ -201,12 +215,18 @@ def main():
     except Exception:
         pass
     idx, f, agg = build_index()
-    INDEX_JSON.write_text(json.dumps(idx, separators=(",", ":")), encoding="utf-8")
+    blob = json.dumps(idx, separators=(",", ":"))
+    INDEX_JSON.write_text(blob, encoding="utf-8")
     ok = reconcile(idx, f)
     inject(idx)
 
+    html_kb = HTML.stat().st_size / 1024
     print(f"\nIndex: {idx['meta']['n_corridors']} corridors, "
-          f"{idx['meta']['n_intersections']} intersections -> {INDEX_JSON.name} + embedded in index.html")
+          f"{idx['meta']['n_intersections']:,} intersections "
+          f"({idx['meta']['n_intersections_with_crash']:,} carry >=1 crash; the rest are searchable "
+          f"and report '0 incidents reported here').")
+    print(f"  embedded index size: {len(blob)/1024:.0f} KB  ->  index.html now {html_kb:.0f} KB "
+          f"({'OK to embed' if html_kb < 4096 else 'LARGE -- consider lazy-load'})")
 
     # three example lookups
     print("\n=== EXAMPLE LOOKUPS ===")
@@ -218,10 +238,15 @@ def main():
     u = next(x for x in idx["corridors"] if x["raw"] == "UNION AVE")
     print(f"[corridor] {u['disp']}: rank #{u['rank']}, {u['total']}/{u['fatal']}, "
           f"SAFE={u['safe']}")
-    it = max(idx["intersections"], key=lambda x: x["crashes"])
-    print(f"[intersection] {it['disp']}: {it['crashes']} crashes / {it['deaths']} fatal, "
-          f"signal={it['sig']}, nearest safe crossing="
-          f"{(str(it['near_safe_ft'])+' ft') if it['near_safe_ft'] is not None else 'not yet analyzed'}")
+    SIGMAP = {"y": "signalized", "n": "unsignalized", "u": "no signal coverage"}
+    it = max(idx["intersections"], key=lambda x: x[3])  # packed: [disp,lat,lon,crashes,deaths,sig,nsf]
+    print(f"[intersection] {it[0]}: {it[3]} crashes / {it[4]} fatal, signal={SIGMAP[it[5]]}, "
+          f"nearest safe crossing={(str(it[6])+' ft') if it[6] is not None else 'not yet analyzed'}")
+    uc = next((x for x in idx["intersections"]
+               if "Union Avenue" in x[0] and "Cleveland" in x[0]), None)
+    print(f"[ACCEPTANCE] Union & S Cleveland -> "
+          + (f"FOUND '{uc[0]}': {uc[3]} crashes / {uc[4]} fatal, signal={SIGMAP[uc[5]]} "
+             f"(searchable: yes)" if uc else "*** NOT IN INDEX ***"))
     print("[address] e.g. '125 N Main St, Memphis' -> geocoded client-side via the US Census "
           "onelineaddress geocoder; card shows nearest corridor + nearest intersection + crashes "
           "within 50 m (graceful 'couldn't find that address' on failure).")
@@ -252,10 +277,11 @@ _JS = r"""
  var layer=L.layerGroup().addTo(map);
  function norm(s){return (s||'').toLowerCase().replace(/\band\b/g,'&').replace(/[^a-z0-9& ]/g,' ').replace(/\s+/g,' ').trim();}
  function toks(s){return norm(s).replace(/&/g,' ').split(' ').filter(Boolean);}
- // searchable items
+ // searchable items (intersections arrive packed as [disp,lat,lon,crashes,deaths,sig,near_safe_ft])
  var items=[];
+ var INTERS=IDX.intersections.map(function(a){return {disp:a[0],lat:a[1],lon:a[2],crashes:a[3],deaths:a[4],sig:a[5],near_safe_ft:a[6]};});
  IDX.corridors.forEach(function(c){items.push({t:'corridor',disp:c.disp,blob:norm(c.disp),score:c.total,ref:c});});
- IDX.intersections.forEach(function(n){items.push({t:'intersection',disp:n.disp,blob:norm(n.disp),score:n.crashes,ref:n});});
+ INTERS.forEach(function(n){items.push({t:'intersection',disp:n.disp,blob:norm(n.disp),score:n.crashes,ref:n});});
  function meters(a,b){var R=111320,la=(a[0]+b[0])/2*Math.PI/180;var dx=(a[1]-b[1])*Math.cos(la)*R,dy=(a[0]-b[0])*R;return Math.sqrt(dx*dx+dy*dy);}
  function ptSeg(p,a,b){var la=p[0]*Math.PI/180,kx=111320*Math.cos(la),ky=111320;
    var px=p[1]*kx,py=p[0]*ky,ax=a[1]*kx,ay=a[0]*ky,bx=b[1]*kx,by=b[0]*ky;
@@ -286,8 +312,10 @@ _JS = r"""
    clear();L.circleMarker([n.lat,n.lon],{radius:12,color:'#5a4a00',weight:2.5,fillColor:'#ffe11a',fillOpacity:.95}).addTo(layer);
    map.setView([n.lat,n.lon],16);
    var safe=n.near_safe_ft==null?na():(n.near_safe_ft+' ft');
-   showCard('<h2>'+n.disp+'</h2>'+row('Crashes',n.crashes+' ('+n.deaths+' fatal)')+
-     row('Signalized',n.sig==='yes'?'yes':'no')+row('Nearest safe crossing',safe));
+   var crashes=n.crashes>0?(n.crashes+' ('+n.deaths+' fatal)'):'<span class="na">0 incidents reported here</span>';
+   var sig=n.sig==='y'?'yes':(n.sig==='n'?'no':na());   // 'u' = no signal coverage -> not yet analyzed
+   showCard('<h2>'+n.disp+'</h2>'+row('Crashes',crashes)+
+     row('Signalized',sig)+row('Nearest safe crossing',safe));
  }
  function openAddress(q){
    showCard('<h2>Searching…</h2><div class="row">geocoding "'+q+'"</div>');clear();
@@ -300,7 +328,7 @@ _JS = r"""
      var nc=null,ncd=1e9;IDX.corridors.forEach(function(c){var d=corridorDist(p,c);if(d<ncd){ncd=d;nc=c;}});
      if(nc){L.polyline(nc.geom,{color:'#ffe11a',weight:6,opacity:.9}).addTo(layer);}  // highlight nearest corridor
      L.marker(p).addTo(layer);map.setView(p,16);
-     var ni=null,nid=1e9;IDX.intersections.forEach(function(n){var d=meters(p,[n.lat,n.lon]);if(d<nid){nid=d;ni=n;}});
+     var ni=null,nid=1e9;INTERS.forEach(function(n){var d=meters(p,[n.lat,n.lon]);if(d<nid){nid=d;ni=n;}});
      var n50=0,f50=0;(window.CRASHES||[]).forEach(function(c){if(meters(p,[c[0],c[1]])<=50){n50++;if(c[3])f50++;}});
      showCard('<h2>'+(m.matchedAddress||q)+'</h2>'+
        row('Nearest corridor',(nc?nc.disp+' ('+FT(ncd)+' ft) — <a href="#" onclick="return false">rank #'+nc.rank+'</a>':'—'))+
