@@ -65,6 +65,63 @@ def titlecase_street(name):
     return " ".join(out)
 
 
+# Count-A geometry: each crash corridor's full-resolution centerline is embedded in EPSG:32136
+# meters (rounded to int), simplified at this tolerance. The browser snaps query points to it and
+# measures along-corridor distance in the SAME metric frame (its JS LCC projection matches pyproj
+# to <0.001 mm). Keep this modest -- it controls both snap accuracy and embedded payload size.
+SIMPLIFY_MG_M = 10
+
+
+def measure_xy(mg, px, py):
+    """Nearest point on a metric multipath mg=[[[x,y],...],...] to (px,py).
+    Returns (along_distance_m, perpendicular_distance_m). MUST stay byte-for-byte identical in
+    logic to the JS measureXY() so crash measures (Python) and query measures (JS) are consistent."""
+    best_d = float("inf")
+    best_m = 0.0
+    base = 0.0
+    for path in mg:
+        cum = 0.0
+        for i in range(len(path) - 1):
+            ax, ay = path[i]
+            bx, by = path[i + 1]
+            dx = bx - ax
+            dy = by - ay
+            l2 = dx * dx + dy * dy
+            t = 0.0 if l2 == 0 else ((px - ax) * dx + (py - ay) * dy) / l2
+            t = 0.0 if t < 0 else (1.0 if t > 1 else t)
+            cx = ax + t * dx
+            cy = ay + t * dy
+            d2 = (px - cx) ** 2 + (py - cy) ** 2
+            seg = l2 ** 0.5
+            if d2 < best_d:
+                best_d = d2
+                best_m = base + cum + t * seg
+            cum += seg
+        base += cum
+    return best_m, best_d ** 0.5
+
+
+def count_a_demo(corridors, lat, lon, window=300):
+    """Server-side mirror of the JS countA() -- proves the embedded data yields the same counts.
+    Snaps (lat,lon) to the nearest crash corridor in EPSG:32136 and counts along-corridor crashes."""
+    from pyproj import Transformer
+    px, py = Transformer.from_crs(CRS_GEO, CRS_M, always_xy=True).transform(lon, lat)
+    ranked = []
+    for c in corridors:
+        if c["mg"]:
+            m, d = measure_xy(c["mg"], px, py)
+            ranked.append((d, m, c))
+    ranked.sort(key=lambda t: t[0])
+    d, m, c = ranked[0]
+    lo, hi = m - window, m + window
+    n = sum(1 for mm in c["xm"] if lo <= mm <= hi)
+    fat = sum(fa for mm, fa in zip(c["xm"], c["xf"]) if lo <= mm <= hi)
+    alt = next((t for t in ranked[1:] if t[2]["raw"] != c["raw"]), None)
+    return {"road": c["disp"], "snap_m": d, "n": n, "fat": fat,
+            "alt": (alt[2]["disp"] if alt else None), "alt_m": (alt[0] if alt else None),
+            "corridor_total": c["total"], "corridor_fatal": c["fatal"]}
+
+
 def build_index():
     f = pd.read_csv(FINAL)
     f["cat3"] = f["Ownership"].map(CAT3)
@@ -120,11 +177,24 @@ def build_index():
 
     # corridor centerlines (simplified) for highlight + address nearest-corridor
     rb = gpd.read_file(RULEBOOK).to_crs(CRS_M)
+
+    # Count A: project every crash to EPSG:32136 once, grouped by the road it's attributed to
+    # (the SAME Street_Name attribution the deadliest-corridor cards use -- not a blind radius).
+    cf = f[["Street_Name", "Latitude", "Longitude", "InjuryClass"]].dropna(subset=["Latitude", "Longitude"])
+    cg = gpd.GeoDataFrame(cf, geometry=gpd.points_from_xy(cf["Longitude"], cf["Latitude"]),
+                          crs=CRS_GEO).to_crs(CRS_M)
+    crashpts = {}
+    for nm, grp in cg.groupby("Street_Name"):
+        crashpts[nm] = [(geom.x, geom.y, inj == FATAL)
+                        for geom, inj in zip(grp.geometry, grp["InjuryClass"])]
+
     corridors = []
+    n_no_geom = 0
     for name in agg.index:
         r = agg.loc[name]
         segs = rb[rb["Street_Name"] == name]
-        paths = []
+        paths = []      # lat/lon, simplified 20 m -> Leaflet highlight (display only)
+        mg = []         # EPSG:32136 metric, simplified SIMPLIFY_MG_M, int -> Count A snap + measure
         if len(segs):
             geo = segs.copy()
             geo["geometry"] = geo.geometry.simplify(20, preserve_topology=False)
@@ -134,6 +204,23 @@ def build_index():
                 lines = gm.geoms if gm.geom_type == "MultiLineString" else [gm]
                 for ln in lines:
                     paths.append([[round(y, 5), round(x, 5)] for x, y in ln.coords])
+            gm_m = segs.copy()
+            gm_m["geometry"] = gm_m.geometry.simplify(SIMPLIFY_MG_M, preserve_topology=False)
+            for gm in gm_m.geometry:
+                if gm is None or gm.is_empty:
+                    continue
+                lines = gm.geoms if gm.geom_type == "MultiLineString" else [gm]
+                for ln in lines:
+                    mg.append([[int(round(x)), int(round(y))] for x, y in ln.coords])
+        # along-corridor measure + fatal flag for each crash on this road (same metric mg the JS uses)
+        xm, xf = [], []
+        if mg:
+            for (cx, cy, fa) in crashpts.get(name, []):
+                mm, _ = measure_xy(mg, cx, cy)
+                xm.append(int(round(mm)))
+                xf.append(1 if fa else 0)
+        else:
+            n_no_geom += 1
         corridors.append({
             "disp": titlecase_street(name), "raw": name,
             "total": int(r.total), "fatal": int(r.fatal),
@@ -141,8 +228,10 @@ def build_index():
             "rank": int(rank_map[name]),
             "n_signalized": (sig_count.get(name, 0) if name in covered else None),
             "safe": (union_safe if name == "UNION AVE" else None),
-            "geom": paths,
+            "geom": paths, "mg": mg, "xm": xm, "xf": xf,
         })
+    if n_no_geom:
+        print(f"  NOTE: {n_no_geom} crash corridors have no rulebook geometry (excluded from Count A snap)")
 
     # intersections: EVERY junction citywide (crash counts/deaths/signalized precomputed by script 25).
     # Packed as compact arrays [disp, lat, lon, crashes, deaths, sig, near_safe_ft] to keep the
@@ -197,8 +286,14 @@ def reconcile(idx, f):
 def inject(idx):
     blob = json.dumps(idx, separators=(",", ":"))
     block = ("<!-- SEARCH-FEATURE-START -->\n" + _CSS +
-             '<div id="searchWrap"><input id="searchBox" autocomplete="off" '
+             '<div id="searchWrap"><div id="searchPanel">'
+             '<div id="searchTop"><span class="lbl">Input</span>'
+             '<span id="segMode"><button id="segAddr" class="on">Address</button>'
+             '<button id="segCoord">Coordinates</button></span></div>'
+             '<input id="searchBox" autocomplete="off" '
              'placeholder="Search a street, intersection, or address…">'
+             '<div id="searchHint">…or click anywhere on the map to locate a point</div>'
+             '</div>'
              '<div id="searchDrop"></div><div id="searchCard"></div></div>\n'
              '<script>window.SEARCH_INDEX=' + blob + ';</script>\n'
              "<script>\n" + _JS + "\n</script>\n<!-- SEARCH-FEATURE-END -->\n")
@@ -247,17 +342,61 @@ def main():
     print(f"[ACCEPTANCE] Union & S Cleveland -> "
           + (f"FOUND '{uc[0]}': {uc[3]} crashes / {uc[4]} fatal, signal={SIGMAP[uc[5]]} "
              f"(searchable: yes)" if uc else "*** NOT IN INDEX ***"))
-    print("[address] e.g. '125 N Main St' -> geocoded via the /api/geocode serverless proxy "
-          "(server-side US Census call; needs the deployed site, not file://); card shows nearest "
-          "corridor + nearest intersection + crashes within 50 m (graceful failure if unreachable).")
+    # ---- COUNT A worked examples on Union (all three input modes share ONE pipeline: countA) ----
+    print("\n=== COUNT A (road-attributed) — worked examples on UNION AVE ===")
+    _wn = re.search(r"COUNTA_WINDOW_M\s*=\s*(\d+)", _JS)
+    print(f"  window N = {_wn.group(1) if _wn else '?'} m "
+          "(change in scripts/24_build_search.py: _JS var COUNTA_WINDOW_M)")
+    cors = idx["corridors"]
+    # (1) ADDRESS mode: geocode a real Union address server-side (same Census the proxy uses), then countA
+    try:
+        import requests
+        gu = ("https://geocoding.geo.census.gov/geocoder/locations/onelineaddress"
+              "?address=" + requests.utils.quote("1779 Union Ave, Memphis, TN") +
+              "&benchmark=Public_AR_Current&format=json")
+        mm = requests.get(gu, timeout=15).json()["result"]["addressMatches"][0]
+        alat, alon = mm["coordinates"]["y"], mm["coordinates"]["x"]
+        a = count_a_demo(cors, alat, alon)
+        print(f"  [address]     '1779 Union Ave' -> {alat:.5f},{alon:.5f} -> on {a['road']} "
+              f"(snap {a['snap_m']:.0f} m): {a['n']} crashes / {a['fat']} fatal in ±300 m")
+    except Exception as e:
+        print(f"  [address]     (Census lookup skipped: {e})")
+    # (2) COORDINATES mode: Union & S Cleveland point
+    c2 = count_a_demo(cors, 35.13684, -90.01667)
+    print(f"  [coordinates] 35.13684,-90.01667 -> on {c2['road']} (snap {c2['snap_m']:.0f} m): "
+          f"{c2['n']} crashes / {c2['fat']} fatal in ±300 m"
+          + (f"  [ambiguous w/ {c2['alt']} @ {c2['alt_m']:.0f} m]" if c2['alt_m'] is not None and (c2['alt_m']-c2['snap_m'])<=15 else ""))
+    # (3) CLICK mode: a different Union point (midtown, near S Cox)
+    c3 = count_a_demo(cors, 35.13353, -89.98368)
+    print(f"  [click]       35.13353,-89.98368 -> on {c3['road']} (snap {c3['snap_m']:.0f} m): "
+          f"{c3['n']} crashes / {c3['fat']} fatal in ±300 m")
+    # bonus — parallel-street discrimination: a point between Union and Court attributes to the nearer
+    cpar = count_a_demo(cors, 35.13839, -89.99494)
+    print(f"  [parallel chk] 35.13839,-89.99494 -> on {cpar['road']} (snap {cpar['snap_m']:.0f} m): "
+          f"{cpar['n']}/{cpar['fat']} — nearer than Union, so Union's crashes are NOT grabbed")
+    # reconciliation: whole-corridor window must equal the Union card total (proves attribution matches)
+    full = count_a_demo(cors, 35.13684, -90.01667, window=10**7)
+    print(f"  reconcile: whole-Union window = {full['n']}/{full['fat']} "
+          f"(Union card = {full['corridor_total']}/{full['corridor_fatal']}; "
+          f"{'MATCH' if (full['n'],full['fat'])==(full['corridor_total'],full['corridor_fatal']) else 'MISMATCH'})")
+
     print(f"\nAll 25 deadliest corridors match the published card: {ok}. "
           "Search is additive; existing map/layers/toggles/charts untouched.")
 
 
 _CSS = """<style>
-#searchWrap{position:absolute;z-index:1200;top:13px;right:300px;width:min(360px,42vw);font-family:system-ui,Segoe UI,Roboto,sans-serif}
-@media(max-width:900px){#searchWrap{right:12px;top:60px;width:min(360px,92vw)}}
-#searchBox{width:100%;box-sizing:border-box;padding:10px 13px;border:1px solid #b9c4cc;border-radius:9px;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+#searchWrap{position:absolute;z-index:1200;top:12px;right:14px;left:auto;width:min(380px,calc(100vw - 28px));font-family:system-ui,Segoe UI,Roboto,sans-serif}
+@media(max-width:560px){#searchWrap{right:8px;left:8px;width:auto}}
+#searchPanel{background:#fff;border-radius:11px;box-shadow:0 4px 18px rgba(0,0,0,.28);padding:11px 12px}
+#searchTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+#searchTop .lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#54646c}
+#segMode{display:inline-flex;border:1px solid #cdd6dc;border-radius:8px;overflow:hidden}
+#segMode button{appearance:none;border:none;background:#fff;color:#54646c;font-size:12px;font-weight:600;padding:5px 13px;cursor:pointer;transition:background .12s}
+#segMode button+button{border-left:1px solid #cdd6dc}
+#segMode button.on{background:#14303f;color:#fff}
+#searchBox{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #cdd6dc;border-radius:8px;font-size:14px}
+#searchBox:focus{outline:none;border-color:#2a6f97;box-shadow:0 0 0 3px rgba(42,111,151,.15)}
+#searchHint{font-size:11px;color:#8a9aa2;margin-top:7px}
 #searchDrop{background:#fff;border-radius:9px;margin-top:5px;box-shadow:0 4px 16px rgba(0,0,0,.22);overflow:hidden;display:none}
 #searchDrop .it{padding:8px 13px;cursor:pointer;font-size:13px;border-bottom:1px solid #eef1f3}
 #searchDrop .it:hover,#searchDrop .it.sel{background:#eaf3f7}
@@ -295,6 +434,77 @@ _JS = r"""
  function row(k,v){return '<div class="row"><b>'+k+':</b> '+v+'</div>';}
  function na(){return '<span class="na">not yet analyzed</span>';}
 
+ // ======================= COUNT A (shared point -> road -> count) =======================
+ // >>> CHANGE THE COUNT-A WINDOW HERE <<<  (meters measured UP and DOWN the road from the
+ //     snapped point; the counted stretch is up to 2x this). Default 300 m.
+ var COUNTA_WINDOW_M = 300;
+
+ // EPSG:32136 (NAD83 / Tennessee, meters) forward projection. Matches pyproj to <0.001 mm, so a
+ // query point lands in the SAME metric frame as the embedded corridor geometry (c.mg) and the
+ // precomputed crash measures. ALL Count-A distance math is done in these meters (never lat/lon
+ // degrees, never Web Mercator).
+ var _a=6378137.0,_f=1/298.257222101,_e=Math.sqrt(2*(1/298.257222101)-(1/298.257222101)*(1/298.257222101));
+ var _p1=36.4166666667*Math.PI/180,_p2=35.25*Math.PI/180,_p0=34.3333333333*Math.PI/180,_l0=-86*Math.PI/180,_FE=600000,_FN=0;
+ function _tt(ph){return Math.tan(Math.PI/4-ph/2)/Math.pow((1-_e*Math.sin(ph))/(1+_e*Math.sin(ph)),_e/2);}
+ function _mm(ph){return Math.cos(ph)/Math.sqrt(1-_e*_e*Math.sin(ph)*Math.sin(ph));}
+ var _n=(Math.log(_mm(_p1))-Math.log(_mm(_p2)))/(Math.log(_tt(_p1))-Math.log(_tt(_p2)));
+ var _F=_mm(_p1)/(_n*Math.pow(_tt(_p1),_n)),_rho0=_a*_F*Math.pow(_tt(_p0),_n);
+ function prj(lat,lon){var ph=lat*Math.PI/180,la=lon*Math.PI/180,rho=_a*_F*Math.pow(_tt(ph),_n),th=_n*(la-_l0);
+   return [_FE+rho*Math.sin(th),_FN+_rho0-rho*Math.cos(th)];}
+
+ // Nearest point on a metric multipath mg -> {m: along-distance, d: perpendicular distance}.
+ // MUST match Python measure_xy() exactly (same crash measures vs query measures).
+ function measureXY(mg,px,py){
+   var bestD=Infinity,bestM=0,base=0;
+   for(var k=0;k<mg.length;k++){var path=mg[k],cum=0;
+     for(var i=0;i<path.length-1;i++){
+       var ax=path[i][0],ay=path[i][1],bx=path[i+1][0],by=path[i+1][1];
+       var dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy,t=l2>0?((px-ax)*dx+(py-ay)*dy)/l2:0;
+       t=t<0?0:(t>1?1:t);
+       var cx=ax+t*dx,cy=ay+t*dy,d2=(px-cx)*(px-cx)+(py-cy)*(py-cy),seg=Math.sqrt(l2);
+       if(d2<bestD){bestD=d2;bestM=base+cum+t*seg;}
+       cum+=seg;
+     }
+     base+=cum;
+   }
+   return {m:bestM,d:Math.sqrt(bestD),len:base};
+ }
+ function corridorLen(c){if(c._len==null)c._len=measureXY(c.mg,0,0).len;return c._len;}
+
+ var MEMBBOX={latMin:34.94,latMax:35.42,lonMin:-90.40,lonMax:-89.55};
+ function inMemphis(lat,lon){return lat>=MEMBBOX.latMin&&lat<=MEMBBOX.latMax&&lon>=MEMBBOX.lonMin&&lon<=MEMBBOX.lonMax;}
+
+ // THE one shared pipeline. Address, coordinates, and map-click all call this.
+ function countA(lat,lon,srcLabel){
+   clear();
+   L.marker([lat,lon]).addTo(layer);map.setView([lat,lon],16);
+   var xy=prj(lat,lon),px=xy[0],py=xy[1];
+   // (a) snap to nearest crash-corridor centerline (EPSG:32136 meters)
+   var ranked=[];
+   IDX.corridors.forEach(function(c){if(c.mg&&c.mg.length){var r=measureXY(c.mg,px,py);ranked.push({c:c,m:r.m,d:r.d});}});
+   if(!ranked.length){showCard('<h2>'+srcLabel+'</h2>'+row('Result','no road geometry available'));return;}
+   ranked.sort(function(a,b){return a.d-b.d;});
+   var hit=ranked[0],alt=null;
+   for(var i=1;i<ranked.length;i++){if(ranked[i].c.raw!==hit.c.raw){alt=ranked[i];break;}}
+   var ambiguous=alt&&(alt.d-hit.d)<=15;   // two roads within ~15 m of each other
+   if(hit.c.geom)L.polyline(hit.c.geom,{color:'#ffe11a',weight:5,opacity:.5,interactive:false}).addTo(layer);
+   // (b) Count A: crashes attributed to THIS road, within +/-N m ALONG the road from the snap
+   var lo=hit.m-COUNTA_WINDOW_M,hi=hit.m+COUNTA_WINDOW_M,n=0,fat=0,xm=hit.c.xm||[],xf=hit.c.xf||[];
+   for(var k=0;k<xm.length;k++){if(xm[k]>=lo&&xm[k]<=hi){n++;if(xf[k])fat++;}}
+   var tot=corridorLen(hit.c),stretch=Math.round(Math.min(tot,hi)-Math.max(0,lo));
+   // (c)/(d) card -- honest + descriptive
+   var ll=lat.toFixed(5)+', '+lon.toFixed(5);
+   var coord='<div class="row" style="font-size:12px;color:#54646c">'+ll+
+     ' <span style="cursor:pointer;color:#2a6f97" title="copy" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+ll+'\')">⧉ copy</span></div>';
+   var snap=hit.c.disp+' <span style="color:#54646c">— snapped '+Math.round(hit.d)+' m from your point</span>';
+   var amb=ambiguous?'<div class="row na">Ambiguous: also '+Math.round(alt.d)+' m from '+alt.c.disp+'; counting '+hit.c.disp+'.</div>':'';
+   var far=(!ambiguous&&hit.d>35)?'<div class="row na">Your point is '+Math.round(hit.d)+' m from the nearest road on record — it may not be on '+hit.c.disp+'.</div>':'';
+   showCard('<h2>'+srcLabel+'</h2>'+coord+row('On road',snap)+amb+far+
+     row('Crashes on this stretch',n+' ('+fat+' fatal)')+
+     '<div class="row" style="color:#54646c">On this ~'+stretch+' m stretch of '+hit.c.disp+
+     ' (±'+COUNTA_WINDOW_M+' m along the road from your point). Crashes attributed to this road only — not a straight-line radius.</div>');
+ }
+
  function openCorridor(c){
    clear();
    // interactive:false => the highlight never captures pointer events, so crash dots
@@ -331,18 +541,16 @@ _JS = r"""
    // intersection search still work on file:// because that data is embedded in the page).
    fetch('/api/geocode?address='+encodeURIComponent(q)).then(function(r){return r.json();}).then(function(j){
      if(!j||typeof j.lat!=='number'){throw 0;}
-     var p=[j.lat,j.lon];
-     var nc=null,ncd=1e9;IDX.corridors.forEach(function(c){var d=corridorDist(p,c);if(d<ncd){ncd=d;nc=c;}});
-     if(nc){L.polyline(nc.geom,{color:'#ffe11a',weight:5,opacity:.5,interactive:false}).addTo(layer);}  // nearest corridor (transparent, click-through)
-     L.marker(p).addTo(layer);map.setView(p,16);
-     var ni=null,nid=1e9;INTERS.forEach(function(n){var d=meters(p,[n.lat,n.lon]);if(d<nid){nid=d;ni=n;}});
-     var n50=0,f50=0;(window.CRASHES||[]).forEach(function(c){if(meters(p,[c[0],c[1]])<=50){n50++;if(c[3])f50++;}});
-     showCard('<h2>'+(j.matchedAddress||q)+'</h2>'+
-       row('Nearest corridor',(nc?nc.disp+' ('+FT(ncd)+' ft) — <a href="#" onclick="return false">rank #'+nc.rank+'</a>':'—'))+
-       row('Nearest intersection',(ni?ni.disp+' ('+FT(nid)+' ft)':'—'))+
-       row('Crashes within 50 m',n50+' ('+f50+' fatal)'));
-     window._openNC=function(){openCorridor(nc);};
+     countA(j.lat,j.lon,j.matchedAddress||q);     // address -> same Count A pipeline
    }).catch(function(){showCard('<h2>Address not found</h2><div class="row">Couldn’t find that address — try a street or intersection.</div>');});
+ }
+ function runCoords(q){
+   var mt=(q||'').match(/(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)/);
+   if(!mt){showCard('<h2>Invalid coordinates</h2><div class="row">Type "lat, lon" — e.g. 35.137, -90.017</div>');return;}
+   var lat=parseFloat(mt[1]),lon=parseFloat(mt[2]);
+   if(!inMemphis(lat,lon)){showCard('<h2>Outside the Memphis area</h2><div class="row">'+lat+', '+lon+
+     ' is not within the Memphis area — expected lat 34.94–35.42, lon -90.40 to -89.55.</div>');return;}
+   countA(lat,lon,'Coordinates '+lat.toFixed(5)+', '+lon.toFixed(5));   // coords -> same Count A pipeline
  }
 
  var sel=-1,cur=[];
@@ -352,7 +560,19 @@ _JS = r"""
    Array.prototype.forEach.call(drop.children,function(el){el.onclick=function(){pick(cur[+el.dataset.i]);};});
  }
  function pick(it){box.value=it.disp;drop.style.display='none';if(it.t==='corridor')openCorridor(it.ref);else openInter(it.ref);}
+ var mode='address',segAddr=document.getElementById('segAddr'),segCoord=document.getElementById('segCoord');
+ // segmented control: the ACTIVE segment is the current input mode (standard, unambiguous).
+ function applyMode(){
+   var addr=(mode==='address');
+   if(segAddr)segAddr.className=addr?'on':'';
+   if(segCoord)segCoord.className=addr?'':'on';
+   box.placeholder=addr?'Search a street, intersection, or address…':'Type a coordinate — e.g. 35.137, -90.017';
+   box.value='';drop.style.display='none';card.style.display='none';}
+ if(segAddr)segAddr.onclick=function(){mode='address';applyMode();box.focus();};
+ if(segCoord)segCoord.onclick=function(){mode='coord';applyMode();box.focus();};
+ applyMode();
  box.addEventListener('input',function(){
+   if(mode==='coord'){drop.style.display='none';return;}    // coords mode: parse on Enter, no suggestions
    var q=box.value.trim();if(q.length<2){drop.style.display='none';return;}
    var tq=toks(q);
    var matches=items.filter(function(it){return tq.every(function(t){return it.blob.indexOf(t)>=0;});})
@@ -362,6 +582,7 @@ _JS = r"""
    render(matches);
  });
  box.addEventListener('keydown',function(e){
+   if(mode==='coord'){if(e.key==='Enter'){runCoords(box.value.trim());drop.style.display='none';}return;}
    if(drop.style.display==='none')return;
    if(e.key==='ArrowDown'){sel=Math.min(sel+1,cur.length-1);}
    else if(e.key==='ArrowUp'){sel=Math.max(sel-1,0);}
@@ -373,6 +594,18 @@ _JS = r"""
  document.addEventListener('click',function(e){if(!document.getElementById('searchWrap').contains(e.target))drop.style.display='none';});
  // allow clicking the "Search address" row
  drop.addEventListener('click',function(e){var el=e.target.closest('.it');if(el&&cur[+el.dataset.i]&&cur[+el.dataset.i].t==='address'){openAddress(cur[+el.dataset.i].addr);drop.style.display='none';}});
+
+ // CHANGE 3 -- click-to-locate. Resolution of the click conflict: clicking a crash/cross dot
+ // opens ITS popup (Leaflet fires 'popupopen'); we record the time and have the map-click handler
+ // skip locate within 80 ms, so a dot-click never doubles as a locate. Clicking empty map or a
+ // road centerline (no popup) runs the same Count A pipeline. Zoom buttons and the layer panel are
+ // separate DOM controls and never emit a map 'click', so they are unaffected.
+ var _lastPopup=0;
+ map.on('popupopen',function(){_lastPopup=Date.now();});
+ map.on('click',function(e){
+   if(Date.now()-_lastPopup<80)return;
+   countA(e.latlng.lat,e.latlng.lng,'Clicked location');
+ });
 })();
 """
 
