@@ -436,15 +436,19 @@ _TEMPLATE = r"""<!DOCTYPE html>
   #maphead h1 { margin: 0; font-size: 20px; font-weight: 700; }
   #maphead p { margin: 4px 0 0; font-size: 13px; color: #b9ccd6; }
   #map { width: 100%; height: 72vh; min-height: 460px; background: #eef1f3; }
-  .leaflet-control.panel { background: #fff; padding: 10px 12px; border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,.25); font-size: 13px; line-height: 1.5; }
-  .panel h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: #54646c; }
+  .leaflet-control.panel { background: #fff; padding: 0; border-radius: 9px; box-shadow: 0 2px 10px rgba(0,0,0,.25); font-size: 13px; line-height: 1.5; width: 214px; overflow: hidden; }
+  .panel .panel-hd { display: flex; align-items: center; justify-content: space-between; padding: 8px 11px; cursor: pointer; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #14303f; user-select: none; }
+  .panel .panel-hd .panel-tog { color: #8aa; font-size: 10px; transition: transform .15s; }
+  .panel.collapsed .panel-hd .panel-tog { transform: rotate(180deg); }
+  .panel.collapsed .panel-body { display: none; }
+  .panel .panel-body { padding: 0 11px 10px; }
+  .panel h4 { margin: 7px 0 5px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #54646c; }
   .panel label { display: block; cursor: pointer; }
   .panel .swatch { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
   .panel hr { border: none; border-top: 1px solid #e6eaec; margin: 8px 0; }
-  .legend { background: #fff; padding: 9px 12px; border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,.25); font-size: 12px; line-height: 1.7; }
-  .legend .swatch { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 6px; }
-  .legend .line { display: inline-block; width: 16px; height: 3px; margin-right: 6px; vertical-align: middle; }
-  .legend .fatal-ex { display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:6px; background:#fff; border:2px solid __FATAL_STROKE__; vertical-align:middle;}
+  .panel .lgd { font-size: 12px; line-height: 1.75; color: #33444c; }
+  .panel .line { display: inline-block; width: 16px; height: 3px; margin-right: 6px; vertical-align: middle; }
+  .panel .fatal-ex { display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:6px; background:#fff; border:2px solid __FATAL_STROKE__; vertical-align:middle;}
   .leaflet-popup-content { font-size: 13px; line-height: 1.5; margin: 10px 12px; }
   .leaflet-popup-content b { color: #14303f; }
   /* ---- dashboard ---- */
@@ -559,19 +563,32 @@ function render() {
 }
 render();
 
-// control panel
-var panel = L.control({ position: "topright" });
+// combined layers + legend control (collapsible). Top-left so it never collides with the
+// search panel (top-right). The three owner checkboxes double as the color legend, so the old
+// standalone bottom-left legend is folded in here -- only the non-toggle symbols remain as a
+// small Legend subsection.
+var panel = L.control({ position: "topleft" });
 panel.onAdd = function () {
   var d = L.DomUtil.create("div", "leaflet-control panel");
   d.innerHTML =
-    '<h4>Road owner</h4>' +
-    '<label><input type="checkbox" data-cat="0" checked><span class="swatch" style="background:' + COL[0] + '"></span>City of Memphis</label>' +
-    '<label><input type="checkbox" data-cat="1" checked><span class="swatch" style="background:' + COL[1] + '"></span>TDOT state route</label>' +
-    '<label><input type="checkbox" data-cat="2" checked><span class="swatch" style="background:' + COL[2] + '"></span>Limited-access</label>' +
-    '<hr><label><input type="checkbox" id="fatalOnly"> Fatal crashes only</label>' +
-    '<label><input type="checkbox" id="hotspots"> Hotspots (intensity)</label>' +
-    '<label><input type="checkbox" id="crossings"> Signalized ped crossings (TDOT)</label>';
+    '<div class="panel-hd"><span>Map layers</span><span class="panel-tog">&#9650;</span></div>' +
+    '<div class="panel-body">' +
+      '<h4>Road owner</h4>' +
+      '<label><input type="checkbox" data-cat="0" checked><span class="swatch" style="background:' + COL[0] + '"></span>City of Memphis</label>' +
+      '<label><input type="checkbox" data-cat="1" checked><span class="swatch" style="background:' + COL[1] + '"></span>TDOT state route</label>' +
+      '<label><input type="checkbox" data-cat="2" checked><span class="swatch" style="background:' + COL[2] + '"></span>Limited-access</label>' +
+      '<hr><label><input type="checkbox" id="fatalOnly"> Fatal crashes only</label>' +
+      '<label><input type="checkbox" id="hotspots"> Hotspots (intensity)</label>' +
+      '<label><input type="checkbox" id="crossings"> Signalized ped crossings (TDOT)</label>' +
+      '<hr><h4>Legend</h4>' +
+      '<div class="lgd"><span class="fatal-ex"></span>Fatal crash (emphasized)</div>' +
+      '<div class="lgd"><span class="line" style="background:' + COL[1] + '"></span>state-route&nbsp;/&nbsp;' +
+        '<span class="line" style="background:' + COL[2] + '"></span>limited-access road</div>' +
+      '<div class="lgd"><span class="swatch" style="background:#7aa8e6;border:1.5px solid #1f3f8c"></span>Signalized pedestrian crossing</div>' +
+    '</div>';
   L.DomEvent.disableClickPropagation(d);
+  L.DomEvent.disableScrollPropagation(d);
+  d.querySelector('.panel-hd').addEventListener('click', function () { d.classList.toggle('collapsed'); });
   d.querySelectorAll('input[data-cat]').forEach(function (cb) {
     cb.addEventListener("change", function () { st.cat[+cb.dataset.cat] = cb.checked; render(); });
   });
@@ -581,22 +598,6 @@ panel.onAdd = function () {
   return d;
 };
 panel.addTo(map);
-
-// legend
-var legend = L.control({ position: "bottomleft" });
-legend.onAdd = function () {
-  var d = L.DomUtil.create("div", "leaflet-control legend");
-  d.innerHTML =
-    '<div><span class="swatch" style="background:' + COL[0] + '"></span>City of Memphis road</div>' +
-    '<div><span class="swatch" style="background:' + COL[1] + '"></span>TDOT state route</div>' +
-    '<div><span class="swatch" style="background:' + COL[2] + '"></span>Limited-access (TDOT)</div>' +
-    '<div><span class="fatal-ex"></span>Fatal crash (emphasized)</div>' +
-    '<div><span class="line" style="background:' + COL[1] + '"></span>state-route / ' +
-    '<span class="line" style="background:' + COL[2] + '"></span>limited-access road</div>' +
-    '<div><span class="swatch" style="background:#7aa8e6;border:1.5px solid #1f3f8c"></span>Signalized pedestrian crossing (TDOT, toggle)</div>';
-  return d;
-};
-legend.addTo(map);
 
 // ---- charts ----
 new Chart(document.getElementById("cJuris"), {
