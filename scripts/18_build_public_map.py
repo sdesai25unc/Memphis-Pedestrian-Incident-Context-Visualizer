@@ -267,7 +267,7 @@ def dashboard_html(s):
   <table class="deadliest" id="deadliest">
     <thead><tr>
       <th data-k="rank">#</th><th data-k="name">Street</th><th data-k="total">Crashes</th>
-      <th data-k="fatal">Deaths</th><th data-k="serious">Serious</th><th data-k="owner">Owner</th>
+      <th data-k="serious">Serious Injury</th><th data-k="fatal">Deaths</th><th data-k="owner">Owner</th>
       <th data-k="spd">Speed</th><th data-k="lanes">Lanes</th>
     </tr></thead><tbody></tbody>
   </table>
@@ -631,7 +631,7 @@ new Chart(document.getElementById("cYear"), {
   function draw() {
     tbody.innerHTML = rows.map(function (r) {
       return "<tr><td>" + r.rank + "</td><td><b>" + r.name + "</b></td><td>" + r.total +
-        "</td><td>" + r.fatal + "</td><td>" + r.serious + "</td><td>" + r.owner +
+        "</td><td>" + r.serious + "</td><td>" + r.fatal + "</td><td>" + r.owner +
         (r.mixed ? " <span style='color:#8a99a0'>(mixed)</span>" : "") + "</td><td>" +
         (r.spd == null ? "&mdash;" : r.spd) + "</td><td>" + (r.lanes == null ? "&mdash;" : r.lanes) + "</td></tr>";
     }).join("");
