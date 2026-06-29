@@ -297,8 +297,10 @@ _JS = r"""
 
  function openCorridor(c){
    clear();
-   L.polyline(c.geom,{color:'#6b5400',weight:12,opacity:.3}).addTo(layer);        // soft casing
-   var pl=L.polyline(c.geom,{color:'#ffe11a',weight:6,opacity:.95}).addTo(layer); // highlighter
+   // interactive:false => the highlight never captures pointer events, so crash dots
+   // beneath it stay clickable. Lower opacity => the dots remain visible through the wash.
+   L.polyline(c.geom,{color:'#ffe11a',weight:11,opacity:.22,interactive:false}).addTo(layer); // soft glow
+   var pl=L.polyline(c.geom,{color:'#ffe11a',weight:5,opacity:.5,interactive:false}).addTo(layer); // highlighter
    try{map.fitBounds(pl.getBounds().pad(0.2));}catch(e){}
    var own='City '+c.city+' · TDOT '+c.tdot+' · Limited-access '+c.limited;
    var sig=c.n_signalized==null?na():(c.n_signalized+' signalized');
@@ -309,7 +311,9 @@ _JS = r"""
      row('Road owner',own)+row('Signalized intersections',sig)+row('Safe crossings',safe));
  }
  function openInter(n){
-   clear();L.circleMarker([n.lat,n.lon],{radius:12,color:'#5a4a00',weight:2.5,fillColor:'#ffe11a',fillOpacity:.95}).addTo(layer);
+   // interactive:false + low fill => the node ring marks the spot but the crash dot(s)
+   // underneath stay visible and clickable.
+   clear();L.circleMarker([n.lat,n.lon],{radius:14,color:'#bfa600',weight:2,opacity:.65,fillColor:'#ffe11a',fillOpacity:.3,interactive:false}).addTo(layer);
    map.setView([n.lat,n.lon],16);
    var safe=n.near_safe_ft==null?na():(n.near_safe_ft+' ft');
    var crashes=n.crashes>0?(n.crashes+' ('+n.deaths+' fatal)'):'<span class="na">0 incidents reported here</span>';
@@ -329,7 +333,7 @@ _JS = r"""
      if(!j||typeof j.lat!=='number'){throw 0;}
      var p=[j.lat,j.lon];
      var nc=null,ncd=1e9;IDX.corridors.forEach(function(c){var d=corridorDist(p,c);if(d<ncd){ncd=d;nc=c;}});
-     if(nc){L.polyline(nc.geom,{color:'#ffe11a',weight:6,opacity:.9}).addTo(layer);}  // highlight nearest corridor
+     if(nc){L.polyline(nc.geom,{color:'#ffe11a',weight:5,opacity:.5,interactive:false}).addTo(layer);}  // nearest corridor (transparent, click-through)
      L.marker(p).addTo(layer);map.setView(p,16);
      var ni=null,nid=1e9;INTERS.forEach(function(n){var d=meters(p,[n.lat,n.lon]);if(d<nid){nid=d;ni=n;}});
      var n50=0,f50=0;(window.CRASHES||[]).forEach(function(c){if(meters(p,[c[0],c[1]])<=50){n50++;if(c[3])f50++;}});
