@@ -5,6 +5,9 @@ __pycache__/
 *.pyo
 *.pyd
 
+# ── Vercel local CLI artifacts (dashboard deploy doesn't create these) ──
+.vercel/
+
 # ── OS / editor junk ──────────────────────────────────────────────
 .vscode/
 desktop.ini

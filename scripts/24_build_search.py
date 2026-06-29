@@ -247,9 +247,9 @@ def main():
     print(f"[ACCEPTANCE] Union & S Cleveland -> "
           + (f"FOUND '{uc[0]}': {uc[3]} crashes / {uc[4]} fatal, signal={SIGMAP[uc[5]]} "
              f"(searchable: yes)" if uc else "*** NOT IN INDEX ***"))
-    print("[address] e.g. '125 N Main St, Memphis' -> geocoded client-side via the US Census "
-          "onelineaddress geocoder; card shows nearest corridor + nearest intersection + crashes "
-          "within 50 m (graceful 'couldn't find that address' on failure).")
+    print("[address] e.g. '125 N Main St' -> geocoded via the /api/geocode serverless proxy "
+          "(server-side US Census call; needs the deployed site, not file://); card shows nearest "
+          "corridor + nearest intersection + crashes within 50 m (graceful failure if unreachable).")
     print(f"\nAll 25 deadliest corridors match the published card: {ok}. "
           "Search is additive; existing map/layers/toggles/charts untouched.")
 
@@ -319,18 +319,21 @@ _JS = r"""
  }
  function openAddress(q){
    showCard('<h2>Searching…</h2><div class="row">geocoding "'+q+'"</div>');clear();
-   var url='https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address='+
-     encodeURIComponent(q)+'&benchmark=Public_AR_Current&format=json';
-   fetch(url).then(function(r){return r.json();}).then(function(j){
-     var m=j&&j.result&&j.result.addressMatches&&j.result.addressMatches[0];
-     if(!m){throw 0;}
-     var p=[m.coordinates.y,m.coordinates.x];
+   // Address geocoding goes through our own /api/geocode serverless proxy (Vercel). The US
+   // Census geocoder sends no CORS header, so the browser cannot call it directly; the proxy
+   // appends "Memphis, TN", calls Census server-side, and returns {matchedAddress,lat,lon}
+   // with CORS allowed. NOTE: this needs the deployed server -- on file:// there is no
+   // /api, so it falls through to the graceful "Address not found" message (corridor &
+   // intersection search still work on file:// because that data is embedded in the page).
+   fetch('/api/geocode?address='+encodeURIComponent(q)).then(function(r){return r.json();}).then(function(j){
+     if(!j||typeof j.lat!=='number'){throw 0;}
+     var p=[j.lat,j.lon];
      var nc=null,ncd=1e9;IDX.corridors.forEach(function(c){var d=corridorDist(p,c);if(d<ncd){ncd=d;nc=c;}});
      if(nc){L.polyline(nc.geom,{color:'#ffe11a',weight:6,opacity:.9}).addTo(layer);}  // highlight nearest corridor
      L.marker(p).addTo(layer);map.setView(p,16);
      var ni=null,nid=1e9;INTERS.forEach(function(n){var d=meters(p,[n.lat,n.lon]);if(d<nid){nid=d;ni=n;}});
      var n50=0,f50=0;(window.CRASHES||[]).forEach(function(c){if(meters(p,[c[0],c[1]])<=50){n50++;if(c[3])f50++;}});
-     showCard('<h2>'+(m.matchedAddress||q)+'</h2>'+
+     showCard('<h2>'+(j.matchedAddress||q)+'</h2>'+
        row('Nearest corridor',(nc?nc.disp+' ('+FT(ncd)+' ft) — <a href="#" onclick="return false">rank #'+nc.rank+'</a>':'—'))+
        row('Nearest intersection',(ni?ni.disp+' ('+FT(nid)+' ft)':'—'))+
        row('Crashes within 50 m',n50+' ('+f50+' fatal)'));
