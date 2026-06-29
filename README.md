@@ -4,7 +4,7 @@
 
 ![The interactive crash map, with crashes colored by road owner and a findings dashboard](docs/hero.png)
 
-> 🔗 **Live demo:** _deploying to Vercel — link coming soon._  In the meantime it runs locally in ~2 minutes → [**Run it locally**](#-run-it-locally).
+> 🔗 **Live demo: [memphis-pedestrian-incident-context.vercel.app](https://memphis-pedestrian-incident-context.vercel.app/)** — explore the map, search any street / intersection / address, or click anywhere to get a road-attributed crash count. (Also runs locally in ~2 min → [**Run it locally**](#-run-it-locally).)
 
 ---
 
@@ -31,6 +31,26 @@ Memphis has one of the worst pedestrian fatality rates in the United States, and
 - **Signal & crossing layers** — the TDOT pedestrian-signal inventory plus OpenStreetMap crosswalks, with an along-corridor distance-to-crossing analysis.
 - **Search** — type-ahead lookup of any corridor or any of the **25,533 street junctions citywide** (built from true geometric centerline intersection, with divided-arterial carriageways consolidated to one node), each with a clean stat card and map highlight; a junction with no recorded crashes returns an honest *"0 incidents reported here,"* never a blank. Address search is wired but pending a backend — see [roadmap](#-status--roadmap).
 - **Findings dashboard** — charts and the deadliest-corridor table, all computed from the data.
+
+## 📸 Screenshots
+
+<!-- ============================================================================
+     SCREENSHOTS BLOCK — easy to refresh after a big change.
+     To update: drop new PNGs into  docs/screenshots/  using the EXACT filenames
+     below (overwrite the old ones). Nothing else to edit. Recommended width ~1400px.
+       01-map-overview.png    — the full interactive map
+       02-search-count-a.png  — a search/click result card (road + owner + Count A)
+       03-city-vs-state.png   — the "See City vs State segments" corridor view
+       04-dashboard.png       — the findings dashboard + deadliest-corridors table
+     ============================================================================ -->
+
+| The map — crashes by who owns the road | Road-attributed search (Count A) |
+|---|---|
+| ![Interactive map with crashes colored by road owner](docs/screenshots/01-map-overview.png) | ![Search result card: snapped road, owner, and crashes on the ±300 m stretch](docs/screenshots/02-search-count-a.png) |
+| City vs State segment breakdown | Findings dashboard |
+| ![A corridor colored by owner: teal = City of Memphis, crimson = TDOT/State](docs/screenshots/03-city-vs-state.png) | ![Findings dashboard and the 25 deadliest corridors](docs/screenshots/04-dashboard.png) |
+
+<!-- SCREENSHOTS BLOCK END -->
 
 ## Methodology — how the data works
 
