@@ -74,6 +74,8 @@ Credibility principles baked into the pipeline:
 
 The jurisdiction classifier (`scripts/17_classifier.py`) tags each centerline segment by an **ordered rulebook** (interstate → ramp → limited-access override → state-route geometric overlap → completeness override → city residual) and records **which rule fired**, so every crash's classification is auditable.
 
+> **Attribution caveat (point search).** Incidents are matched to roads by the nearest point to the true road centerline. Near intersections, a point may attribute to a cross street rather than the main road. Points on roads with no recorded pedestrian crashes snap to the nearest road that has them — so always check the road name and snap distance shown on each result.
+
 ---
 
 ## 🛠 Tech stack
