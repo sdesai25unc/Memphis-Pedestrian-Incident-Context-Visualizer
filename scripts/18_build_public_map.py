@@ -172,14 +172,16 @@ def compute_stats(f):
 
 
 def crash_array(f):
-    """Compact per-crash array: [lat, lng, cat(0/1/2), fatal(0/1), date, sev, loc]."""
+    """Compact per-crash array: [lat, lng, cat(0/1/2), fatal(0/1), date(ISO), sev, loc]."""
     catn = {"City": 0, "TDOT": 1, "Limited": 2}
+    iso = pd.to_datetime(f["CollisionDate"], errors="coerce").dt.strftime("%Y-%m-%d")  # M/D/YYYY -> ISO
     rows = []
-    for _, r in f.iterrows():
+    for pos, (_, r) in enumerate(f.iterrows()):
+        d = iso.iloc[pos]
         rows.append([
             round(float(r.Latitude), 6), round(float(r.Longitude), 6),
             catn[cat3(r.Ownership)], 1 if r.InjuryClass == FATAL else 0,
-            str(r.CollisionDate)[:10], str(r.InjuryClass), str(r.NonMotoristLocation),
+            (d if isinstance(d, str) else ""), str(r.InjuryClass), str(r.NonMotoristLocation),
         ])
     return rows
 
@@ -519,8 +521,16 @@ L.geoJSON(SEGMENTS, { style: function (ft) {
   return { color: COL[2], weight: 3, opacity: .40 };  // interstate / ramp / limited-access
 }}).addTo(map);
 
+// CollisionDate is already carried per crash as c[4] ("YYYY-MM-DD"); format it readably,
+// and show "date not recorded" when the source had no usable date.
+function fmtDate(d) {
+  if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)) return "date not recorded";
+  var M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var p = d.split("-");
+  return M[(+p[1]) - 1] + " " + (+p[2]) + ", " + p[0];
+}
 function popupHtml(c) {
-  return "<b>" + c[4] + "</b><br>" + c[5] + "<br>" + c[6] +
+  return "<b>" + fmtDate(c[4]) + "</b><br>" + c[5] + "<br>" + c[6] +
          "<br><b>Road owner:</b> " + CATLBL[c[2]];
 }
 
