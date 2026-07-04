@@ -32,6 +32,9 @@ from pathlib import Path
 
 import pandas as pd
 import geopandas as gpd
+from shapely import STRtree
+from shapely.geometry import Point
+from shapely.ops import linemerge
 
 ROOT = Path(__file__).resolve().parent.parent
 PROC = ROOT / "data" / "processed"
@@ -85,57 +88,163 @@ def titlecase_street(name):
 SIMPLIFY_MG_M = 10
 
 
-def measure_xy(mg, px, py):
-    """Nearest point on a metric multipath mg=[[[x,y],...],...] to (px,py).
-    Returns (along_distance_m, perpendicular_distance_m, nearest_path_index). MUST stay byte-for-byte
-    identical in logic to the JS measureXY() so crash measures (Python) and query measures (JS) match."""
+def lines_of(geom):
+    if geom is None or geom.is_empty:
+        return []
+    return list(geom.geoms) if geom.geom_type == "MultiLineString" else [geom]
+
+
+def measure_line(line, px, py):
+    """Nearest point on ONE spatially-ordered component line=[[x,y],...] to (px,py).
+    Returns (along_distance_m, perpendicular_distance_m, nearest_subsegment_index, total_length_m).
+    MUST stay identical in logic to the JS measureLine() (query vs crash measures must match)."""
     best_d = float("inf")
     best_m = 0.0
-    best_pi = 0
-    base = 0.0
-    for pidx, path in enumerate(mg):
-        cum = 0.0
-        for i in range(len(path) - 1):
-            ax, ay = path[i]
-            bx, by = path[i + 1]
-            dx = bx - ax
-            dy = by - ay
-            l2 = dx * dx + dy * dy
-            t = 0.0 if l2 == 0 else ((px - ax) * dx + (py - ay) * dy) / l2
-            t = 0.0 if t < 0 else (1.0 if t > 1 else t)
-            cx = ax + t * dx
-            cy = ay + t * dy
-            d2 = (px - cx) ** 2 + (py - cy) ** 2
-            seg = l2 ** 0.5
-            if d2 < best_d:
-                best_d = d2
-                best_m = base + cum + t * seg
-                best_pi = pidx
-            cum += seg
-        base += cum
-    return best_m, best_d ** 0.5, best_pi
+    best_si = 0
+    cum = 0.0
+    for i in range(len(line) - 1):
+        ax, ay = line[i]
+        bx, by = line[i + 1]
+        dx = bx - ax
+        dy = by - ay
+        l2 = dx * dx + dy * dy
+        t = 0.0 if l2 == 0 else ((px - ax) * dx + (py - ay) * dy) / l2
+        t = 0.0 if t < 0 else (1.0 if t > 1 else t)
+        cx = ax + t * dx
+        cy = ay + t * dy
+        d2 = (px - cx) ** 2 + (py - cy) ** 2
+        seg = l2 ** 0.5
+        if d2 < best_d:
+            best_d = d2
+            best_m = cum + t * seg
+            best_si = i
+        cum += seg
+    return best_m, best_d ** 0.5, best_si, cum
+
+
+TOUCH_M = 1.0    # components whose endpoints touch within this are ONE road (branch stubs merged)
+GAP_M = 15.0     # inter-cluster gap beyond this is a genuine "disconnected" break (Vance rail, etc.)
+
+
+def _clen(line):
+    return sum(((line[i + 1][0] - line[i][0]) ** 2 + (line[i + 1][1] - line[i][1]) ** 2) ** 0.5
+               for i in range(len(line) - 1))
+
+
+def cluster_components(mg):
+    """Union-find components into CLUSTERS by endpoint-touch <= TOUCH_M (Fix 1). Returns
+    (cl: cluster id per component, real_gap: 1 if any inter-cluster gap > GAP_M else 0)."""
+    n = len(mg)
+    ends = [(m[0], m[-1]) for m in mg]
+    par = list(range(n))
+
+    def find(i):
+        while par[i] != i:
+            par[i] = par[par[i]]; i = par[i]
+        return i
+
+    def dist(a, b):
+        return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            if min(dist(ends[i][a], ends[j][b]) for a in (0, 1) for b in (0, 1)) <= TOUCH_M:
+                par[find(i)] = find(j)
+    roots = {}
+    cl = [0] * n
+    for i in range(n):
+        r = find(i)
+        cl[i] = roots.setdefault(r, len(roots))
+    # real gap: min endpoint distance between DIFFERENT clusters
+    real_gap = 0
+    if len(roots) > 1:
+        best = float("inf")
+        for i in range(n):
+            for j in range(i + 1, n):
+                if cl[i] != cl[j]:
+                    best = min(best, min(dist(ends[i][a], ends[j][b]) for a in (0, 1) for b in (0, 1)))
+        real_gap = 1 if best > GAP_M else 0
+    return cl, real_gap
+
+
+def _net_dist(mg, cl, ci, m):
+    """Dijkstra network distances from a click on component ci at measure m, over its cluster.
+    Returns (dist_by_node, en, length, comps) mirroring the JS. Node ids match endpoints <= TOUCH_M."""
+    import heapq
+    comps = [i for i in range(len(mg)) if cl[i] == cl[ci]]
+    nodes = []
+
+    def node_id(pt):
+        for k, (nx, ny) in enumerate(nodes):
+            if ((nx - pt[0]) ** 2 + (ny - pt[1]) ** 2) ** 0.5 <= TOUCH_M:
+                return k
+        nodes.append(pt); return len(nodes) - 1
+
+    en, length, adj = {}, {}, {}
+    for cj in comps:
+        a, b = node_id(mg[cj][0]), node_id(mg[cj][-1])
+        en[cj] = (a, b); length[cj] = _clen(mg[cj])
+        adj.setdefault(a, []).append((b, length[cj]))
+        adj.setdefault(b, []).append((a, length[cj]))
+    a0, b0 = en[ci]
+    dist = {a0: m, b0: length[ci] - m}
+    pq = [(dist[a0], a0), (dist[b0], b0)]
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d > dist.get(u, float("inf")):
+            continue
+        for v, w in adj.get(u, []):
+            if d + w < dist.get(v, float("inf")):
+                dist[v] = d + w
+                heapq.heappush(pq, (d + w, v))
+    return dist, en, length, comps
+
+
+def net_count(c, ci, m, window):
+    """Crashes on ci's CLUSTER within `window` NETWORK metres of the click (Fix 1: folds stubs in)."""
+    cl = c["cl"]
+    dist, en, length, comps = _net_dist(c["mg"], cl, ci, m)
+    n = fat = 0
+    for k in range(len(c["xm"])):
+        cj = c["xc"][k]
+        if cl[cj] != cl[ci]:
+            continue
+        mj = c["xm"][k]
+        if cj == ci:
+            nd = abs(mj - m)
+        else:
+            a, b = en[cj]
+            nd = min(dist.get(a, 1e18) + mj, dist.get(b, 1e18) + (length[cj] - mj))
+        if nd <= window:
+            n += 1
+            fat += c["xf"][k]
+    return n, fat, comps
 
 
 def count_a_demo(corridors, lat, lon, window=300):
     """Server-side mirror of the JS countA() -- proves the embedded data yields the same counts.
-    Snaps (lat,lon) to the nearest crash corridor in EPSG:32136 and counts along-corridor crashes."""
+    Snaps (lat,lon) to the nearest crash-corridor COMPONENT in EPSG:32136 and counts crashes on
+    that connected component within +/-window metres (Option A: no cross-gap leakage)."""
     from pyproj import Transformer
     px, py = Transformer.from_crs(CRS_GEO, CRS_M, always_xy=True).transform(lon, lat)
     ranked = []
     for c in corridors:
-        if c["mg"] and not c.get("g"):      # skip generic catch-all names in the snap (Change 2)
-            mm, dd, pi = measure_xy(c["mg"], px, py)
-            ranked.append((dd, mm, c, pi))
+        if c.get("g"):                       # skip generic catch-all names in the snap (Change 2)
+            continue
+        for ci, line in enumerate(c["mg"]):
+            mm, dd, si, _ = measure_line(line, px, py)
+            ranked.append((dd, mm, c, ci, si))
     ranked.sort(key=lambda t: t[0])
-    d, m, c, pi = ranked[0]
-    lo, hi = m - window, m + window
-    n = sum(1 for mm in c["xm"] if lo <= mm <= hi)
-    fat = sum(fa for mm, fa in zip(c["xm"], c["xf"]) if lo <= mm <= hi)
+    d, m, c, ci, si = ranked[0]
+    n, fat, _ = net_count(c, ci, m, window)      # network distance over the connected cluster (Fix 1)
     alt = next((t for t in ranked[1:] if t[2]["raw"] != c["raw"]), None)
-    owners = sorted(set(c.get("mo") or []))
+    owners = sorted({o for row in (c.get("co") or []) for o in row})
     lbl = {0: "City of Memphis", 1: "TDOT / State", 2: "Limited-access (TDOT)"}
-    pt_owner = c["mo"][pi] if c.get("mo") and pi < len(c["mo"]) else None
-    return {"road": c["disp"], "snap_m": d, "n": n, "fat": fat,
+    pt_owner = c["co"][ci][si] if c.get("co") and ci < len(c["co"]) and si < len(c["co"][ci]) else None
+    ncl = (max(c["cl"]) + 1) if c.get("cl") else 1
+    clen_here = sum(_clen(c["mg"][i]) for i in range(len(c["mg"])) if c["cl"][i] == c["cl"][ci])
+    return {"road": c["disp"], "snap_m": d, "n": n, "fat": fat, "comp": ci, "ncomp": len(c["mg"]),
+            "ncl": ncl, "cluster_len": round(clen_here),
             "alt": (alt[2]["disp"] if alt else None), "alt_m": (alt[0] if alt else None),
             "corridor_total": c["total"], "corridor_fatal": c["fatal"],
             "pt_owner": (lbl.get(pt_owner) if pt_owner is not None else None),
@@ -200,54 +309,70 @@ def build_index():
 
     # Count A: project every crash to EPSG:32136 once, grouped by the road it's attributed to
     # (the SAME Street_Name attribution the deadliest-corridor cards use -- not a blind radius).
-    cf = f[["Street_Name", "Latitude", "Longitude", "InjuryClass"]].dropna(subset=["Latitude", "Longitude"])
+    cf = f[["Street_Name", "Latitude", "Longitude", "InjuryClass", "CollisionDate"]].dropna(
+        subset=["Latitude", "Longitude"]).copy()
+    # CollisionDate is M/D/YYYY in the source -> normalize to ISO 'YYYY-MM-DD' for clean JS parsing
+    cf["_iso"] = pd.to_datetime(cf["CollisionDate"], errors="coerce").dt.strftime("%Y-%m-%d")
     cg = gpd.GeoDataFrame(cf, geometry=gpd.points_from_xy(cf["Longitude"], cf["Latitude"]),
                           crs=CRS_GEO).to_crs(CRS_M)
     crashpts = {}
     for nm, grp in cg.groupby("Street_Name"):
-        crashpts[nm] = [(geom.x, geom.y, inj == FATAL)
-                        for geom, inj in zip(grp.geometry, grp["InjuryClass"])]
+        crashpts[nm] = [(geom.x, geom.y, inj == FATAL, (iso if isinstance(iso, str) else None))
+                        for geom, inj, iso in zip(grp.geometry, grp["InjuryClass"], grp["_iso"])]
 
+    # dataset date coverage (Change 4) -- windows are measured from dmax, NOT today (reporting-lag honesty)
+    dser = pd.to_datetime(f["CollisionDate"], errors="coerce").dropna()
+    DMIN = dser.min().strftime("%Y-%m-%d")
+    DMAX = dser.max().strftime("%Y-%m-%d")
+
+    # Option A: stitch each corridor's rulebook segments into spatially-ordered CONNECTED COMPONENTS
+    # (shapely linemerge). mg = list of components (each a single ordered metric polyline). A point
+    # snaps to ONE component and the window/count/bars are confined to it -> true along-road semantics,
+    # no cross-gap leakage. A road broken by a rail yard etc. becomes separate components by design.
     corridors = []
     n_no_geom = 0
+    comp_hist = {}      # name -> #components, for reporting
     for name in agg.index:
         r = agg.loc[name]
         segs = rb[rb["Street_Name"] == name]
-        paths = []      # lat/lon, simplified 20 m -> Leaflet highlight (display only)
-        go = []         # owner code per geom path (City/TDOT/Limited) -> City-vs-State segment view
-        mg = []         # EPSG:32136 metric, simplified SIMPLIFY_MG_M, int -> Count A snap + measure
-        mo = []         # owner code per mg path -> the searched point's single-segment owner
-        if len(segs):
-            geo = segs.copy()
-            geo["geometry"] = geo.geometry.simplify(20, preserve_topology=False)
-            geo_g = geo.to_crs(CRS_GEO)
-            for gm, own in zip(geo_g.geometry, geo_g["Ownership"]):
-                if gm is None or gm.is_empty:
+        mg = []         # list of components; each = [[x,y],...] EPSG:32136 metric int, spatial order
+        co = []         # per component: owner code per sub-segment (City-vs-State view + point owner)
+        orig_lines, orig_oc = [], []
+        for gm, own in zip(segs.geometry, segs["Ownership"]):
+            for ln in lines_of(gm):
+                orig_lines.append(ln)
+                orig_oc.append(owner_code(own))
+        if orig_lines:
+            comps = lines_of(linemerge(orig_lines))
+            tree = STRtree(orig_lines)               # recover owner along each merged component
+            for comp in comps:
+                cs = list(comp.simplify(SIMPLIFY_MG_M, preserve_topology=False).coords)
+                if len(cs) < 2:
                     continue
-                oc = owner_code(own)
-                lines = gm.geoms if gm.geom_type == "MultiLineString" else [gm]
-                for ln in lines:
-                    paths.append([[round(y, 5), round(x, 5)] for x, y in ln.coords])
-                    go.append(oc)
-            gm_m = segs.copy()
-            gm_m["geometry"] = gm_m.geometry.simplify(SIMPLIFY_MG_M, preserve_topology=False)
-            for gm, own in zip(gm_m.geometry, gm_m["Ownership"]):
-                if gm is None or gm.is_empty:
-                    continue
-                oc = owner_code(own)
-                lines = gm.geoms if gm.geom_type == "MultiLineString" else [gm]
-                for ln in lines:
-                    mg.append([[int(round(x)), int(round(y))] for x, y in ln.coords])
-                    mo.append(oc)
-        # along-corridor measure + fatal flag for each crash on this road (same metric mg the JS uses)
-        xm, xf = [], []
+                mg.append([[int(round(x)), int(round(y))] for x, y in cs])
+                row = []
+                for i in range(len(cs) - 1):
+                    mx = (cs[i][0] + cs[i + 1][0]) / 2.0
+                    my = (cs[i][1] + cs[i + 1][1]) / 2.0
+                    row.append(orig_oc[int(tree.nearest(Point(mx, my)))])
+                co.append(row)
+        comp_hist[name] = len(mg)
+        # each crash -> nearest COMPONENT + along-measure within that component
+        xc, xm, xf, xd = [], [], [], []
         if mg:
-            for (cx, cy, fa) in crashpts.get(name, []):
-                mm, _, _ = measure_xy(mg, cx, cy)
-                xm.append(int(round(mm)))
+            for (cx, cy, fa, dt) in crashpts.get(name, []):
+                bi, bd, bm = 0, float("inf"), 0.0
+                for ci, line in enumerate(mg):
+                    mm, dd, _, _ = measure_line(line, cx, cy)
+                    if dd < bd:
+                        bd, bi, bm = dd, ci, mm
+                xc.append(bi)
+                xm.append(int(round(bm)))
                 xf.append(1 if fa else 0)
+                xd.append(dt)
         else:
             n_no_geom += 1
+        cl, real_gap = cluster_components(mg) if mg else ([], 0)
         rec = {
             "disp": titlecase_street(name), "raw": name,
             "total": int(r.total), "fatal": int(r.fatal),
@@ -255,13 +380,15 @@ def build_index():
             "rank": int(rank_map[name]),
             "n_signalized": (sig_count.get(name, 0) if name in covered else None),
             "safe": (union_safe if name == "UNION AVE" else None),
-            "geom": paths, "go": go, "mg": mg, "mo": mo, "xm": xm, "xf": xf,
+            "mg": mg, "co": co, "cl": cl, "rg": real_gap, "xc": xc, "xm": xm, "xf": xf, "xd": xd,
         }
         if name in GENERIC_NAMES:
             rec["g"] = 1     # excluded from the nearest-corridor snap (Change 2)
         corridors.append(rec)
     if n_no_geom:
         print(f"  NOTE: {n_no_geom} crash corridors have no rulebook geometry (excluded from Count A snap)")
+    print("  components: " + ", ".join(f"{k.title()}={comp_hist.get(k, 0)}"
+          for k in ["CENTRAL AVE", "UNION AVE", "POPLAR AVE", "VANCE AVE"]))
 
     # intersections: EVERY junction citywide (crash counts/deaths/signalized precomputed by script 25).
     # Packed as compact arrays [disp, lat, lon, crashes, deaths, sig, near_safe_ft] to keep the
@@ -283,7 +410,8 @@ def build_index():
 
     idx = {"corridors": corridors, "intersections": intersections,
            "meta": {"n_corridors": len(corridors), "n_intersections": len(intersections),
-                    "n_intersections_with_crash": with_crash, "total_crashes": int(f.shape[0])}}
+                    "n_intersections_with_crash": with_crash, "total_crashes": int(f.shape[0]),
+                    "dmin": DMIN, "dmax": DMAX}}
     return idx, f, agg
 
 
@@ -400,24 +528,122 @@ def main():
     c3 = count_a_demo(cors, 35.13353, -89.98368)
     print(f"  [click]       35.13353,-89.98368 -> on {c3['road']} (snap {c3['snap_m']:.0f} m) | "
           f"Owner: {c3['pt_owner']} | {c3['n']} crashes / {c3['fat']} fatal in ±300 m")
+    print(f"  (each snaps to ONE component of its corridor; e.g. click -> component {c3['comp']+1}/{c3['ncomp']})")
     # (CHANGE 1) owner card -- (a) single-owner point and (b) a varies-by-segment corridor (Poplar)
     pop = next((c for c in cors if c["raw"] == "POPLAR AVE"), None)
     if pop:
-        pset = sorted(set(pop.get("mo") or []))
+        pset = sorted({o for row in (pop.get("co") or []) for o in row})
         lbl = {0: "City", 1: "TDOT/State", 2: "Limited"}
-        print(f"  [owner: point]   single point above -> Owner: {c3['pt_owner']} (one segment, one owner)")
+        print(f"  [owner: point]   single point above -> Owner: {c3['pt_owner']} (one sub-segment, one owner)")
         print(f"  [owner: corridor] Poplar Avenue -> road ownership = "
               f"{'varies by segment' if len(pset) > 1 else lbl.get(pset[0])} "
               f"(segments: {', '.join(lbl.get(o) for o in pset)}) -> 'See City vs State segments'")
-    # bonus — parallel-street discrimination: a point between Union and Court attributes to the nearer
     cpar = count_a_demo(cors, 35.13839, -89.99494)
     print(f"  [parallel chk] 35.13839,-89.99494 -> on {cpar['road']} (snap {cpar['snap_m']:.0f} m): "
           f"{cpar['n']}/{cpar['fat']} — nearer than Union, so Union's crashes are NOT grabbed")
-    # reconciliation: whole-corridor window must equal the Union card total (proves attribution matches)
-    full = count_a_demo(cors, 35.13684, -90.01667, window=10**7)
-    print(f"  reconcile: whole-Union window = {full['n']}/{full['fat']} "
-          f"(Union card = {full['corridor_total']}/{full['corridor_fatal']}; "
-          f"{'MATCH' if (full['n'],full['fat'])==(full['corridor_total'],full['corridor_fatal']) else 'MISMATCH'})")
+    # reconciliation: whole-corridor total (sum of ALL crashes on the road, every component) = card
+    print(f"  reconcile: whole-Union (all components) = {len(u['xd'])}/{sum(u['xf'])} "
+          f"(Union card = {u['total']}/{u['fatal']}; "
+          f"{'MATCH' if (len(u['xd']), sum(u['xf'])) == (u['total'], u['fatal']) else 'MISMATCH'})")
+
+    # ---- FIX 1 (branch-stub merge) + divergence re-check (must stay 0 for Union/Poplar) ----
+    import math as _math
+    from pyproj import Transformer as _TF
+    _Tinv = _TF.from_crs(CRS_M, CRS_GEO, always_xy=True)
+
+    def _pt_at(line, target):
+        cum = 0.0
+        for i in range(len(line) - 1):
+            ax, ay = line[i]; bx, by = line[i + 1]; seg = _math.hypot(bx - ax, by - ay)
+            if cum + seg >= target or i == len(line) - 2:
+                tt = max(0.0, min(1.0, 0.0 if seg == 0 else (target - cum) / seg))
+                return (ax + tt * (bx - ax), ay + tt * (by - ay))
+            cum += seg
+        return tuple(line[-1])
+
+    def _divcheck(c):
+        pos = [_pt_at(c["mg"][c["xc"][k]], c["xm"][k]) for k in range(len(c["xm"]))]
+        cl = c["cl"]; samples = diverge = 0; max_crash = 0.0
+        for ci, line in enumerate(c["mg"]):
+            tot = _clen(line); s = 60.0
+            while s < tot:
+                click = _pt_at(line, s)
+                wc, _, _ = net_count(c, ci, s, 300)     # NETWORK window over the cluster (Fix 1)
+                sc = 0
+                for k in range(len(c["xm"])):
+                    if cl[c["xc"][k]] == cl[ci] and _math.dist(click, pos[k]) <= 300:
+                        sc += 1; max_crash = max(max_crash, _math.dist(click, pos[k]))
+                samples += 1
+                if wc != sc:
+                    diverge += 1
+                s += 120.0
+        return samples, diverge, max_crash
+
+    # corridor-wide Fix-1 summary
+    branch = []
+    parked_total = 0
+    for c in cors:
+        if not c["mg"] or c.get("g"):
+            continue
+        cl = c["cl"]; ncl = max(cl) + 1
+        clusters = {}
+        for i, g in enumerate(cl):
+            clusters.setdefault(g, []).append(i)
+        merged = [g for g in clusters.values() if len(g) >= 2]
+        if merged:
+            parked = 0
+            for g in merged:
+                primary = max(g, key=lambda i: _clen(c["mg"][i]))
+                parked += sum(c["xc"].count(i) for i in g if i != primary)
+            parked_total += parked
+            branch.append((c["raw"], len(c["mg"]), ncl, parked))
+    print("\n=== FIX 1 (branch-stub merge) — corridor-wide ===")
+    print(f"  corridors with same-name branch stubs merged into one road: {len(branch)} "
+          f"| crashes folded from a stub back into main-line clicks: {parked_total}")
+    for raw, nc, ncl, pk in sorted(branch, key=lambda t: -t[3])[:6]:
+        print(f"    {raw:<22} {nc} components -> {ncl} cluster(s), folded-in crashes = {pk}")
+
+    print("\n=== divergence re-check (network window vs straight-line-on-cluster; must be ~0) ===")
+    for nm in ["UNION AVE", "POPLAR AVE", "S PARKWAY E"]:
+        cc = next(x for x in cors if x["raw"] == nm)
+        sm, dv, mc = _divcheck(cc)
+        print(f"  {cc['disp']}: {len(cc['mg'])} comps -> {max(cc['cl'])+1} clusters | sampled {sm} | "
+              f"divergence {dv}/{sm} | max counted-crash straight-line {mc:.0f} m")
+    print("  (before ALL fixes: Union diverged 30/64, Poplar 63/272; Option A took them to 0; Fix 1 keeps 0)")
+
+    # Airways (branch -> ONE road) and Vance (real gaps -> stays split)
+    def _mid_latlon(c):
+        line = max(c["mg"], key=_clen); p = _pt_at(line, _clen(line) / 2)
+        lon, lat = _Tinv.transform(p[0], p[1]); return lat, lon
+    print("\n=== Airways (branch merge) vs Vance (real gaps) ===")
+    air = next(x for x in cors if x["raw"] == "AIRWAYS BLVD")
+    alat, alon = _mid_latlon(air)
+    ar = count_a_demo(cors, alat, alon)
+    print(f"  Airways mid-boulevard: {ar['ncomp']} components -> {ar['ncl']} cluster(s) "
+          f"(=> {'NO disconnected-pieces note' if ar['ncl'] == 1 else 'STILL SPLIT'}); "
+          f"±300 count on the connected road = {ar['n']}/{ar['fat']}; cluster length {ar['cluster_len']} m")
+    van = next(x for x in cors if x["raw"] == "VANCE AVE")
+    print(f"  Vance Ave: {len(van['mg'])} components -> {max(van['cl'])+1} clusters, real_gap flag={van['rg']} "
+          f"(=> stays split; each click scoped to its section, wording shows section length)")
+
+    # ---- CHANGE 4: data coverage + per-corridor date-window table (Union, collapsed + expanded) ----
+    import pandas as _pd
+    meta = idx["meta"]
+    print(f"\n=== DATA COVERAGE (Change 4) ===")
+    print(f"  CollisionDate min..max = {meta['dmin']} .. {meta['dmax']}  "
+          f"(windows are measured from {meta['dmax']}, NOT today)")
+    u = next(c for c in idx["corridors"] if c["raw"] == "UNION AVE")
+    xd, xf = u["xd"], u["xf"]
+    dmax = _pd.Timestamp(meta["dmax"])
+    print(f"  Union Ave time breakdown:")
+    print(f"    [collapsed] Since data start: {len(xd)} incidents · {sum(xf)} deaths  "
+          f"(deadliest card = {u['total']}/{u['fatal']}; "
+          f"{'RECONCILES' if (len(xd), sum(xf)) == (u['total'], u['fatal']) else 'MISMATCH'})")
+    for label, months in [("Last 12 months", 12), ("Last 6 months", 6), ("Last 3 months", 3), ("Last 1 month", 1)]:
+        cut = dmax - _pd.DateOffset(months=months)
+        inc = sum(1 for d in xd if d and _pd.Timestamp(d) >= cut)
+        dth = sum(xf[i] for i, d in enumerate(xd) if d and _pd.Timestamp(d) >= cut)
+        print(f"    [expanded] {label:<16} {inc:>3} incidents · {dth} deaths  (since {cut.date()})")
 
     print(f"\nAll 25 deadliest corridors match the published card: {ok}. "
           "Search is additive; existing map/layers/toggles/charts untouched.")
@@ -446,6 +672,15 @@ _CSS = """<style>
 #searchCard .na{color:#a06000;font-style:italic}
 #searchCard .x{float:right;cursor:pointer;color:#8aa;font-weight:700}
 #searchCard .row{margin:2px 0}
+#searchCard .cstats{margin-top:7px;border-top:1px solid #eef1f3;padding-top:6px}
+#searchCard #twLink{color:#2a6f97;text-decoration:none;margin-left:4px;cursor:pointer;font-weight:600}
+#searchCard table.tw{width:100%;border-collapse:collapse;margin:6px 0 3px}
+#searchCard table.tw th{text-align:left;font-size:11px;color:#54646c;font-weight:700;border-bottom:1px solid #d9e0e4;padding:3px 6px}
+#searchCard table.tw td{font-size:12px;padding:3px 6px;border-bottom:1px solid #f0f3f5}
+#searchCard table.tw .n{text-align:right;font-variant-numeric:tabular-nums;width:78px}
+#searchCard .twnote{font-size:10.5px;color:#9aa7ad;font-style:italic;margin-top:3px}
+#searchCard .twcov{font-size:11px;color:#54646c;margin-top:2px}
+#searchCard .disclaim{font-size:10.5px;color:#9aa7ad;line-height:1.45;margin-top:8px;border-top:1px solid #eef1f3;padding-top:6px}
 </style>"""
 
 _JS = r"""
@@ -460,18 +695,50 @@ _JS = r"""
  var INTERS=IDX.intersections.map(function(a){return {disp:a[0],lat:a[1],lon:a[2],crashes:a[3],deaths:a[4],sig:a[5],near_safe_ft:a[6]};});
  IDX.corridors.forEach(function(c){items.push({t:'corridor',disp:c.disp,blob:norm(c.disp),score:c.total,ref:c});});
  INTERS.forEach(function(n){items.push({t:'intersection',disp:n.disp,blob:norm(n.disp),score:n.crashes,ref:n});});
- function meters(a,b){var R=111320,la=(a[0]+b[0])/2*Math.PI/180;var dx=(a[1]-b[1])*Math.cos(la)*R,dy=(a[0]-b[0])*R;return Math.sqrt(dx*dx+dy*dy);}
- function ptSeg(p,a,b){var la=p[0]*Math.PI/180,kx=111320*Math.cos(la),ky=111320;
-   var px=p[1]*kx,py=p[0]*ky,ax=a[1]*kx,ay=a[0]*ky,bx=b[1]*kx,by=b[0]*ky;
-   var dx=bx-ax,dy=by-ay,L=dx*dx+dy*dy,t=L?((px-ax)*dx+(py-ay)*dy)/L:0;t=Math.max(0,Math.min(1,t));
-   var cx=ax+t*dx,cy=ay+t*dy;return Math.sqrt((px-cx)*(px-cx)+(py-cy)*(py-cy));}
- function corridorDist(p,c){var m=1e9;c.geom.forEach(function(path){for(var i=0;i<path.length-1;i++){m=Math.min(m,ptSeg(p,path[i],path[i+1]));}});return m;}
- var FT=function(m){return Math.round(m/0.3048);};
 
  function clear(){layer.clearLayers();}
  function showCard(html){card.innerHTML='<span class="x" onclick="this.parentNode.style.display=\'none\'">✕</span>'+html;card.style.display='block';}
  function row(k,v){return '<div class="row"><b>'+k+':</b> '+v+'</div>';}
  function na(){return '<span class="na">not yet analyzed</span>';}
+
+ // Change 1 -- always-visible attribution disclaimer on the result card (text only, no logic change).
+ var DISCLAIMER='<div class="disclaim">Incidents are matched to roads by the nearest point to the true '+
+   'road centerline. Near intersections, a point may attribute to a cross street rather than the main '+
+   'road. Points on roads with no recorded pedestrian crashes snap to the nearest road that has them — '+
+   'check the listed road name and snap distance on each result.</div>';
+
+ // Change 4 -- collapsible, date-windowed per-corridor stats table (whole road; reconciles to the
+ // deadliest card). Windows are measured from the DATA'S most recent date (IDX.meta.dmax), not today.
+ var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+ function fmtMon(d){if(!d)return '?';var p=d.split('-');return MON[(+p[1])-1]+' '+p[0];}
+ function statsTable(c){
+   var xd=c.xd||[],xf=c.xf||[],total=xd.length,deaths=0,j;
+   for(j=0;j<xf.length;j++)if(xf[j])deaths++;
+   var dmax=IDX.meta.dmax,dmin=IDX.meta.dmin;
+   function cut(m){var d=new Date(dmax+'T00:00:00');d.setMonth(d.getMonth()-m);return d;}
+   var W=[['Since data start',null],['Last 12 months',12],['Last 6 months',6],['Last 3 months',3],['Last 1 month',1]];
+   var body=W.map(function(w){
+     var inc=0,dth=0,co=(w[1]==null?null:cut(w[1]));
+     for(var i=0;i<xd.length;i++){
+       var ok=(w[1]==null);
+       if(!ok&&xd[i]){ok=(new Date(xd[i]+'T00:00:00'))>=co;}
+       if(ok){inc++;if(xf[i])dth++;}
+     }
+     return '<tr><td>'+w[0]+'</td><td class="n">'+inc+'</td><td class="n">'+dth+'</td></tr>';
+   }).join('');
+   return '<div class="cstats"><div class="row"><b>Since data start:</b> '+total+' incidents · '+deaths+
+     ' deaths <a id="twLink" onclick="return __toggleTW()">▸ Show time breakdown</a></div>'+
+     '<div id="tw" style="display:none">'+
+       '<table class="tw"><thead><tr><th>Window</th><th class="n">Incidents</th><th class="n">Deaths</th></tr></thead>'+
+       '<tbody>'+body+'</tbody></table>'+
+       '<div class="twnote">Recent windows may undercount — official crash data is finalized with a reporting lag.</div>'+
+       '<div class="twcov">Data coverage: '+fmtMon(dmin)+' – '+fmtMon(dmax)+'</div>'+
+     '</div></div>';
+ }
+ window.__toggleTW=function(){
+   var tw=document.getElementById('tw'),a=document.getElementById('twLink');if(!tw)return false;
+   var open=tw.style.display==='none';tw.style.display=open?'block':'none';
+   if(a)a.innerHTML=open?'▾ Hide time breakdown':'▸ Show time breakdown';return false;};
 
  // ======================= COUNT A (shared point -> road -> count) =======================
  // >>> CHANGE THE COUNT-A WINDOW HERE <<<  (meters measured UP and DOWN the road from the
@@ -491,24 +758,23 @@ _JS = r"""
  function prj(lat,lon){var ph=lat*Math.PI/180,la=lon*Math.PI/180,rho=_a*_F*Math.pow(_tt(ph),_n),th=_n*(la-_l0);
    return [_FE+rho*Math.sin(th),_FN+_rho0-rho*Math.cos(th)];}
 
- // Nearest point on a metric multipath mg -> {m: along-distance, d: perpendicular distance}.
- // MUST match Python measure_xy() exactly (same crash measures vs query measures).
- function measureXY(mg,px,py){
-   var bestD=Infinity,bestM=0,base=0,bestPi=0;
-   for(var k=0;k<mg.length;k++){var path=mg[k],cum=0;
-     for(var i=0;i<path.length-1;i++){
-       var ax=path[i][0],ay=path[i][1],bx=path[i+1][0],by=path[i+1][1];
-       var dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy,t=l2>0?((px-ax)*dx+(py-ay)*dy)/l2:0;
-       t=t<0?0:(t>1?1:t);
-       var cx=ax+t*dx,cy=ay+t*dy,d2=(px-cx)*(px-cx)+(py-cy)*(py-cy),seg=Math.sqrt(l2);
-       if(d2<bestD){bestD=d2;bestM=base+cum+t*seg;bestPi=k;}
-       cum+=seg;
-     }
-     base+=cum;
+ // Nearest point on ONE spatially-ordered component -> {m: along-dist, d: perpendicular, si, len}.
+ // MUST match Python measure_line() exactly (query measures vs crash measures must agree).
+ function measureLine(line,px,py){
+   var bestD=Infinity,bestM=0,bestSi=0,cum=0;
+   for(var i=0;i<line.length-1;i++){
+     var ax=line[i][0],ay=line[i][1],bx=line[i+1][0],by=line[i+1][1];
+     var dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy,t=l2>0?((px-ax)*dx+(py-ay)*dy)/l2:0;
+     t=t<0?0:(t>1?1:t);
+     var cx=ax+t*dx,cy=ay+t*dy,d2=(px-cx)*(px-cx)+(py-cy)*(py-cy),seg=Math.sqrt(l2);
+     if(d2<bestD){bestD=d2;bestM=cum+t*seg;bestSi=i;}
+     cum+=seg;
    }
-   return {m:bestM,d:Math.sqrt(bestD),len:base,pi:bestPi};
+   return {m:bestM,d:Math.sqrt(bestD),si:bestSi,len:cum};
  }
- function corridorLen(c){if(c._len==null)c._len=measureXY(c.mg,0,0).len;return c._len;}
+ function compLen(line){var c=0;for(var i=0;i<line.length-1;i++)c+=Math.hypot(line[i+1][0]-line[i][0],line[i+1][1]-line[i][1]);return c;}
+ // metric components -> lat/lon polylines (inverse EPSG:32136), cached per corridor for highlights.
+ function llOf(c){if(!c._ll){c._ll=(c.mg||[]).map(function(line){return line.map(function(p){return iprj(p[0],p[1]);});});}return c._ll;}
 
  var MEMBBOX={latMin:34.94,latMax:35.42,lonMin:-90.40,lonMax:-89.55};
  function inMemphis(lat,lon){return lat>=MEMBBOX.latMin&&lat<=MEMBBOX.latMax&&lon>=MEMBBOX.lonMin&&lon<=MEMBBOX.lonMax;}
@@ -521,26 +787,23 @@ _JS = r"""
    for(var i=0;i<8;i++){var es=_e*Math.sin(phi);phi=Math.PI/2-2*Math.atan(t*Math.pow((1-es)/(1+es),_e/2));}
    return [phi*180/Math.PI,lon*180/Math.PI];
  }
- // metric point + road-perpendicular unit vector at a given along-corridor distance on mg
- function tickAt(mg,target){
-   var base=0;
-   for(var k=0;k<mg.length;k++){var path=mg[k],cum=0;
-     for(var i=0;i<path.length-1;i++){
-       var ax=path[i][0],ay=path[i][1],bx=path[i+1][0],by=path[i+1][1],seg=Math.hypot(bx-ax,by-ay);
-       if(base+cum+seg>=target||(k===mg.length-1&&i===path.length-2)){
-         var tt=seg>0?(target-base-cum)/seg:0;tt=tt<0?0:(tt>1?1:tt);
-         var ux=seg>0?(bx-ax)/seg:1,uy=seg>0?(by-ay)/seg:0;
-         return {x:ax+tt*(bx-ax),y:ay+tt*(by-ay),perp:[-uy,ux]};
-       }
-       cum+=seg;
+ // metric point + road-perpendicular unit vector at along-distance target on ONE component line
+ function tickAt(line,target){
+   var cum=0;
+   for(var i=0;i<line.length-1;i++){
+     var ax=line[i][0],ay=line[i][1],bx=line[i+1][0],by=line[i+1][1],seg=Math.hypot(bx-ax,by-ay);
+     if(cum+seg>=target||i===line.length-2){
+       var tt=seg>0?(target-cum)/seg:0;tt=tt<0?0:(tt>1?1:tt);
+       var ux=seg>0?(bx-ax)/seg:1,uy=seg>0?(by-ay)/seg:0;
+       return {x:ax+tt*(bx-ax),y:ay+tt*(by-ay),perp:[-uy,ux]};
      }
-     base+=cum;
+     cum+=seg;
    }
    return null;
  }
- // a short perpendicular cross-bar on the road marking one end of the +/-window (the counted stretch)
- function drawWindowTick(mg,target,color){
-   var H=22,t=tickAt(mg,target);if(!t)return;
+ // a short perpendicular cross-bar marking one end of the +/-window (clamped within the component)
+ function drawWindowTick(line,target,color){
+   var H=22,t=tickAt(line,target);if(!t)return;
    var a=iprj(t.x+t.perp[0]*H,t.y+t.perp[1]*H),b=iprj(t.x-t.perp[0]*H,t.y-t.perp[1]*H);
    L.polyline([a,b],{color:color,weight:4,opacity:.95,interactive:false}).addTo(layer);
  }
@@ -548,13 +811,19 @@ _JS = r"""
  // ----- road ownership (Change 1). Reuse the map's City/TDOT/Limited colors -- no new green/red. -----
  var OWNCOL=(typeof COL!=='undefined'&&COL)?COL:['#1b9e8f','#d6453d','#3a3a44'];
  function ownerLabel(code){return code===0?'City of Memphis':code===1?'TDOT / State':code===2?'Limited-access (TDOT)':'unknown';}
- function uniqOwners(arr){var s={};(arr||[]).forEach(function(o){s[o]=1;});return Object.keys(s).map(Number);}
+ function allOwners(c){var s={};(c.co||[]).forEach(function(row){row.forEach(function(o){s[o]=1;});});return Object.keys(s).map(Number);}
+ function fitTo(ll){try{var b=L.latLngBounds([]);ll.forEach(function(p){p.forEach(function(q){b.extend(q);});});if(b.isValid())map.fitBounds(b.pad(0.2));}catch(e){}}
  var ownTarget=null;   // corridor whose City/State breakdown the "See ... segments" link reveals
  function highlightOwnership(c){
-   clear();var nL=0;
-   (c.geom||[]).forEach(function(path,i){var oc=(c.go&&c.go[i]!=null)?c.go[i]:0;if(oc===2)nL++;
-     L.polyline(path,{color:OWNCOL[oc],weight:6,opacity:.6,interactive:false}).addTo(layer);}); // teal=City, crimson=TDOT
-   try{map.fitBounds(L.polyline(c.geom).getBounds().pad(0.2));}catch(e){}
+   clear();var nL=0,ll=llOf(c);
+   (c.mg||[]).forEach(function(line,ci){
+     var owns=(c.co&&c.co[ci])||[],pts=ll[ci],i=0;
+     while(i<owns.length){var oc=owns[i],j=i;while(j<owns.length&&owns[j]===oc)j++;  // merge same-owner runs
+       if(oc===2)nL++;
+       L.polyline(pts.slice(i,j+1),{color:OWNCOL[oc],weight:6,opacity:.6,interactive:false}).addTo(layer); // teal=City, crimson=TDOT
+       i=j;}
+   });
+   fitTo(ll);
    function sw(col){return '<span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:'+col+';margin-right:6px;vertical-align:middle"></span>';}
    showCard('<h2>'+c.disp+' — road ownership</h2>'+
      '<div class="row">'+sw(OWNCOL[0])+'City of Memphis segments</div>'+
@@ -564,54 +833,111 @@ _JS = r"""
  }
  window.__segBreak=function(){if(ownTarget)highlightOwnership(ownTarget);return false;};
 
+ // ---- Fix 1: connected-cluster network distance (branch stubs count as ONE road) ----
+ function clusterOf(c,ci){var g=c.cl[ci],out=[];for(var i=0;i<c.cl.length;i++)if(c.cl[i]===g)out.push(i);return out;}
+ function clusterGraph(c,comps){
+   var nodes=[],en={},len={},adj={};
+   function nid(p){for(var k=0;k<nodes.length;k++){var q=nodes[k];if(Math.hypot(q[0]-p[0],q[1]-p[1])<=1.5)return k;}nodes.push(p);return nodes.length-1;}
+   comps.forEach(function(cj){var line=c.mg[cj],a=nid(line[0]),b=nid(line[line.length-1]);
+     en[cj]=[a,b];len[cj]=compLen(line);
+     (adj[a]=adj[a]||[]).push([b,len[cj]]);(adj[b]=adj[b]||[]).push([a,len[cj]]);});
+   return {en:en,adj:adj,len:len};
+ }
+ function netDist(g,ci,m){var a=g.en[ci][0],b=g.en[ci][1],dist={};dist[a]=m;dist[b]=g.len[ci]-m;
+   var pq=[[dist[a],a],[dist[b],b]];
+   while(pq.length){var mi=0;for(var i=1;i<pq.length;i++)if(pq[i][0]<pq[mi][0])mi=i;
+     var top=pq.splice(mi,1)[0],d=top[0],u=top[1];if(d>dist[u])continue;
+     var nb=g.adj[u]||[];for(var j=0;j<nb.length;j++){var v=nb[j][0],w=nb[j][1],nd=d+w;
+       if(dist[v]==null||nd<dist[v]){dist[v]=nd;pq.push([nd,v]);}}}
+   return dist;
+ }
+ // crashes on ci's cluster within +/-COUNTA_WINDOW_M NETWORK metres; returns count + graph for bars
+ function netCount(c,ci,m){
+   var comps=clusterOf(c,ci),g=clusterGraph(c,comps),dist=netDist(g,ci,m),W=COUNTA_WINDOW_M;
+   var n=0,fat=0,cl=c.cl,xc=c.xc,xm=c.xm,xf=c.xf;
+   for(var k=0;k<xm.length;k++){if(cl[xc[k]]!==cl[ci])continue;
+     var cj=xc[k],mj=xm[k],nd;
+     if(cj===ci)nd=Math.abs(mj-m);
+     else{var a=g.en[cj][0],b=g.en[cj][1];nd=Math.min((dist[a]==null?1e18:dist[a])+mj,(dist[b]==null?1e18:dist[b])+(g.len[cj]-mj));}
+     if(nd<=W){n++;if(xf[k])fat++;}}
+   return {n:n,fat:fat,comps:comps,g:g,dist:dist};
+ }
+ // draw the +/-window frontier bars over the cluster; returns how many were drawn (>=2 => not clamped)
+ function drawFrontier(c,res,ci,m){
+   var g=res.g,dist=res.dist,W=COUNTA_WINDOW_M,drawn=0;
+   res.comps.forEach(function(cj){var line=c.mg[cj],Lj=g.len[cj];
+     if(cj===ci){
+       if(m-W>=0){drawWindowTick(line,m-W,'#e8590c');drawn++;}
+       if(m+W<=Lj){drawWindowTick(line,m+W,'#e8590c');drawn++;}
+     }else{
+       var dS=dist[g.en[cj][0]],dE=dist[g.en[cj][1]];
+       if(dS!=null&&dS<=W){var x=W-dS;if(x>0&&x<Lj){drawWindowTick(line,x,'#e8590c');drawn++;}}
+       if(dE!=null&&dE<=W){var x2=Lj-(W-dE);if(x2>0&&x2<Lj){drawWindowTick(line,x2,'#e8590c');drawn++;}}
+     }});
+   return drawn;
+ }
+
  // THE one shared pipeline. Address, coordinates, and map-click all call this.
  function countA(lat,lon,srcLabel){
    clear();
    L.marker([lat,lon]).addTo(layer);map.setView([lat,lon],16);
    var xy=prj(lat,lon),px=xy[0],py=xy[1];
-   // (a) snap to nearest crash-corridor centerline (EPSG:32136 metres). Skip generic catch-all
-   //     names (Alley, Private Dr) so the point lands on a real named street (Change 2).
+   // (a) snap to the nearest crash-corridor COMPONENT (EPSG:32136 m). Skip generic names (Change 2).
    var ranked=[];
-   IDX.corridors.forEach(function(c){if(c.mg&&c.mg.length&&!c.g){var r=measureXY(c.mg,px,py);ranked.push({c:c,m:r.m,d:r.d,pi:r.pi});}});
+   IDX.corridors.forEach(function(c){if(c.g)return;(c.mg||[]).forEach(function(line,ci){
+     var r=measureLine(line,px,py);ranked.push({c:c,ci:ci,m:r.m,d:r.d,si:r.si});});});
    if(!ranked.length){showCard('<h2>'+srcLabel+'</h2>'+row('Result','no road geometry available'));return;}
    ranked.sort(function(a,b){return a.d-b.d;});
    var hit=ranked[0],alt=null;
    for(var i=1;i<ranked.length;i++){if(ranked[i].c.raw!==hit.c.raw){alt=ranked[i];break;}}
-   var ambiguous=alt&&(alt.d-hit.d)<=15;   // two roads within ~15 m of each other
-   if(hit.c.geom)L.polyline(hit.c.geom,{color:'#ffe11a',weight:5,opacity:.5,interactive:false}).addTo(layer);
-   // (b) Count A: crashes attributed to THIS road, within +/-N m ALONG the road from the snap
-   var lo=hit.m-COUNTA_WINDOW_M,hi=hit.m+COUNTA_WINDOW_M,n=0,fat=0,xm=hit.c.xm||[],xf=hit.c.xf||[];
-   for(var k=0;k<xm.length;k++){if(xm[k]>=lo&&xm[k]<=hi){n++;if(xf[k])fat++;}}
-   var tot=corridorLen(hit.c),slo=Math.max(0,lo),shi=Math.min(tot,hi),stretch=Math.round(shi-slo);
-   drawWindowTick(hit.c.mg,slo,'#e8590c');drawWindowTick(hit.c.mg,shi,'#e8590c'); // orange bars mark the +/-window ends
-   // (CHANGE 1) the point fell on ONE segment -> one owner; offer the corridor breakdown if it varies
+   var ambiguous=alt&&(alt.d-hit.d)<=15;
+   // highlight ALL components of the corridor as clean, spatially-ordered lines (Option A: no zigzag)
+   var ll=llOf(hit.c);ll.forEach(function(p){
+     L.polyline(p,{color:'#ffe11a',weight:11,opacity:.20,interactive:false}).addTo(layer);
+     L.polyline(p,{color:'#ffe11a',weight:5,opacity:.5,interactive:false}).addTo(layer);});
+   // (b) Count A over the CONNECTED CLUSTER by NETWORK distance (Fix 1: branch stubs fold in; no leakage)
+   var res=netCount(hit.c,hit.ci,hit.m),n=res.n,fat=res.fat;
+   var barsDrawn=drawFrontier(hit.c,res,hit.ci,hit.m);
+   var clamped=barsDrawn<2;
+   var clusterLen=0;res.comps.forEach(function(cj){clusterLen+=res.g.len[cj];});
+   var ncl=Math.max.apply(null,hit.c.cl)+1;
+   // (CHANGE 1) point owner = owner of the sub-segment it snapped to
    ownTarget=hit.c;
-   var powner=(hit.c.mo&&hit.c.mo[hit.pi]!=null)?hit.c.mo[hit.pi]:null;
-   var varies=uniqOwners(hit.c.mo).length>1;
+   var powner=(hit.c.co&&hit.c.co[hit.ci]&&hit.c.co[hit.ci][hit.si]!=null)?hit.c.co[hit.ci][hit.si]:null;
+   var varies=allOwners(hit.c).length>1;
    var ownRow=row('Owner',(powner==null?'unknown':ownerLabel(powner)))+
      (varies?'<div class="row"><a href="#" onclick="return __segBreak()">See full corridor City vs State breakdown</a></div>':'');
-   // (c)/(d) card -- honest + descriptive
-   var ll=lat.toFixed(5)+', '+lon.toFixed(5);
-   var coord='<div class="row" style="font-size:12px;color:#54646c">'+ll+
-     ' <span style="cursor:pointer;color:#2a6f97" title="copy" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+ll+'\')">⧉ copy</span></div>';
+   var ll2=lat.toFixed(5)+', '+lon.toFixed(5);
+   var coord='<div class="row" style="font-size:12px;color:#54646c">'+ll2+
+     ' <span style="cursor:pointer;color:#2a6f97" title="copy" onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+ll2+'\')">⧉ copy</span></div>';
    var snap=hit.c.disp+' <span style="color:#54646c">— snapped '+Math.round(hit.d)+' m from your point</span>';
    var amb=ambiguous?'<div class="row na">Ambiguous: also '+Math.round(alt.d)+' m from '+alt.c.disp+'; counting '+hit.c.disp+'.</div>':'';
    var far=(!ambiguous&&hit.d>35)?'<div class="row na">Your point is '+Math.round(hit.d)+' m from the nearest road on record — it may not be on '+hit.c.disp+'.</div>':'';
+   // wording: real-gap sections vs a continuous road; only clamped windows get the section note (Fix 2)
+   var body='The two orange bars mark ±'+COUNTA_WINDOW_M+' m along the road from your point. '+
+            'Crashes attributed to this road only, by network distance — not a straight-line radius.';
+   if(ncl>1){
+     var word=hit.c.rg?('one of '+ncl+' disconnected pieces (separated by real gaps — rail, etc.)')
+                      :('one of '+ncl+' sections (small centreline gaps)');
+     body='This is a ~'+Math.round(clusterLen)+' m section of '+hit.c.disp+' — '+word+
+          (clamped?', so the ±'+COUNTA_WINDOW_M+' m window is clamped to it. ':'. ')+body;
+   }
    showCard('<h2>'+srcLabel+'</h2>'+coord+row('On road',snap)+ownRow+amb+far+
-     row('Crashes on this stretch',n+' ('+fat+' fatal)')+
-     '<div class="row" style="color:#54646c">On this ~'+stretch+' m stretch of '+hit.c.disp+
-     ' — the two orange bars mark ±'+COUNTA_WINDOW_M+' m along the road from your point. Crashes attributed to this road only — not a straight-line radius.</div>');
+     row('Crashes within ±'+COUNTA_WINDOW_M+' m',n+' ('+fat+' fatal)')+
+     '<div class="row" style="color:#54646c">'+body+'</div>'+
+     statsTable(hit.c)+DISCLAIMER);    // whole-road time breakdown (Change 4) + disclaimer (Change 1)
  }
 
  function openCorridor(c){
    clear();
-   // interactive:false => the highlight never captures pointer events, so crash dots
-   // beneath it stay clickable. Lower opacity => the dots remain visible through the wash.
-   L.polyline(c.geom,{color:'#ffe11a',weight:11,opacity:.22,interactive:false}).addTo(layer); // soft glow
-   var pl=L.polyline(c.geom,{color:'#ffe11a',weight:5,opacity:.5,interactive:false}).addTo(layer); // highlighter
-   try{map.fitBounds(pl.getBounds().pad(0.2));}catch(e){}
+   // draw each spatially-ordered component as a clean connected line (Option A fixes the old zigzag);
+   // interactive:false keeps crash dots underneath clickable.
+   var ll=llOf(c);ll.forEach(function(p){
+     L.polyline(p,{color:'#ffe11a',weight:11,opacity:.22,interactive:false}).addTo(layer); // soft glow
+     L.polyline(p,{color:'#ffe11a',weight:5,opacity:.5,interactive:false}).addTo(layer);}); // highlighter
+   fitTo(ll);
    var own='City '+c.city+' · TDOT '+c.tdot+' · Limited-access '+c.limited;
-   var owners=uniqOwners(c.go);ownTarget=c;
+   var owners=allOwners(c);ownTarget=c;
    var roadOwn=owners.length>1?'varies by segment — <a href="#" onclick="return __segBreak()">See City vs State segments</a>'
                               :ownerLabel(owners.length?owners[0]:0);
    var sig=c.n_signalized==null?na():(c.n_signalized+' signalized');
@@ -619,7 +945,8 @@ _JS = r"""
      ' marked-only) · '+c.safe.pct_over_250ft+'% of crossing-relevant crashes >250 ft from one · longest gap '+
      c.safe.longest_gap_ft.toLocaleString()+' ft'):na();
    showCard('<h2>'+c.disp+'</h2>'+row('Deadliest rank','#'+c.rank)+row('Crashes',c.total+' ('+c.fatal+' fatal)')+
-     row('Road',roadOwn)+row('Crashes by owner',own)+row('Signalized intersections',sig)+row('Safe crossings',safe));
+     row('Road',roadOwn)+row('Crashes by owner',own)+row('Signalized intersections',sig)+row('Safe crossings',safe)+
+     statsTable(c));    // whole-corridor time breakdown (Change 4)
  }
  function openInter(n){
    // interactive:false + low fill => the node ring marks the spot but the crash dot(s)
