@@ -63,6 +63,13 @@ def owner_code(ownership):
     return CAT_CODE.get(CAT3.get(str(ownership)), 0)
 
 
+# City of Memphis sidewalk inventory (reprojected to EPSG:32136). We flag, per road sub-segment,
+# whether a sidewalk line runs within SIDEWALK_T metres of it. 20 m is the diagnosed "knee": sidewalks
+# sit ~7 m (median) to ~12 m (p90) off the centerline, so 20 m catches near- AND far-side adjacent
+# sidewalks while staying well under the ~60 m block spacing (no parallel-street false positives).
+SIDEWALKS = PROC / "memphis_sidewalks_32136.geojson"
+SIDEWALK_T = 20.0
+
 # Generic catch-all street names excluded ONLY from the nearest-corridor snap (Change 2). They are
 # real attributions for crashes (counts unchanged) but worthless as a "nearest road" because they are
 # hundreds of disconnected segments citywide. Derived from the data: the only such names among the 529
@@ -389,6 +396,35 @@ def build_index():
         print(f"  NOTE: {n_no_geom} crash corridors have no rulebook geometry (excluded from Count A snap)")
     print("  components: " + ", ".join(f"{k.title()}={comp_hist.get(k, 0)}"
           for k in ["CENTRAL AVE", "UNION AVE", "POPLAR AVE", "VANCE AVE"]))
+
+    # ---- City sidewalk presence per road sub-segment (deterministic; parallel to `co`) ----
+    # For each mg sub-segment midpoint, is a city-inventory sidewalk within SIDEWALK_T metres?
+    for rec in corridors:
+        rec["sw"] = [[0] * max(0, len(comp) - 1) for comp in rec["mg"]]
+    if SIDEWALKS.exists():
+        sw_gdf = gpd.read_file(SIDEWALKS).to_crs(CRS_M)
+        tree = STRtree(sw_gdf.geometry.values)
+        mids, loc = [], []
+        for corridor_i, rec in enumerate(corridors):
+            for comp_i, comp in enumerate(rec["mg"]):
+                for si in range(len(comp) - 1):
+                    mids.append(Point((comp[si][0] + comp[si + 1][0]) / 2.0,
+                                      (comp[si][1] + comp[si + 1][1]) / 2.0))
+                    loc.append((corridor_i, comp_i, si))
+        n_with = 0
+        if mids:
+            indices, dists = tree.query_nearest(mids, all_matches=False, return_distance=True)
+            for k in range(len(dists)):
+                if dists[k] <= SIDEWALK_T:
+                    ci, cj, si = loc[indices[0][k]]
+                    corridors[ci]["sw"][cj][si] = 1
+                    n_with += 1
+        _swpct = round(100.0 * n_with / len(mids), 1) if mids else 0.0
+        print(f"  sidewalks: {len(sw_gdf):,} city lines | {n_with:,}/{len(mids):,} road sub-segments "
+              f"have a sidewalk within {SIDEWALK_T:.0f} m ({_swpct}%)")
+    else:
+        print(f"  sidewalks: {SIDEWALKS.name} not found -> sidewalk status will read 'no data' "
+              f"(run the unzip/convert step first)")
 
     # intersections: EVERY junction citywide (crash counts/deaths/signalized precomputed by script 25).
     # Packed as compact arrays [disp, lat, lon, crashes, deaths, sig, near_safe_ft] to keep the
@@ -812,6 +848,9 @@ _JS = r"""
  var OWNCOL=(typeof COL!=='undefined'&&COL)?COL:['#1b9e8f','#d6453d','#3a3a44'];
  function ownerLabel(code){return code===0?'City of Memphis':code===1?'TDOT / State':code===2?'Limited-access (TDOT)':'unknown';}
  function allOwners(c){var s={};(c.co||[]).forEach(function(row){row.forEach(function(o){s[o]=1;});});return Object.keys(s).map(Number);}
+ // City sidewalk inventory: is a sidewalk line within SIDEWALK_T m of this road sub-segment?
+ function swAt(c,ci,si){return !!(c.sw&&c.sw[ci]&&c.sw[ci][si]);}
+ function swStatus(p){return p?'Sidewalk present in city inventory':'No sidewalk found in city inventory (absence may reflect incomplete records)';}
  function fitTo(ll){try{var b=L.latLngBounds([]);ll.forEach(function(p){p.forEach(function(q){b.extend(q);});});if(b.isValid())map.fitBounds(b.pad(0.2));}catch(e){}}
  var ownTarget=null;   // corridor whose City/State breakdown the "See ... segments" link reveals
  function highlightOwnership(c){
@@ -922,7 +961,8 @@ _JS = r"""
      body='This is a ~'+Math.round(clusterLen)+' m section of '+hit.c.disp+' — '+word+
           (clamped?', so the ±'+COUNTA_WINDOW_M+' m window is clamped to it. ':'. ')+body;
    }
-   showCard('<h2>'+srcLabel+'</h2>'+coord+row('On road',snap)+ownRow+amb+far+
+   showCard('<h2>'+srcLabel+'</h2>'+coord+row('On road',snap)+ownRow+
+     row('Sidewalk (city inventory)',swStatus(swAt(hit.c,hit.ci,hit.si)))+amb+far+
      row('Crashes within ±'+COUNTA_WINDOW_M+' m',n+' ('+fat+' fatal)')+
      '<div class="row" style="color:#54646c">'+body+'</div>'+
      statsTable(hit.c)+DISCLAIMER);    // whole-road time breakdown (Change 4) + disclaimer (Change 1)
@@ -1034,6 +1074,44 @@ _JS = r"""
    if(Date.now()-_lastPopup<80)return;
    countA(e.latlng.lat,e.latlng.lng,'Clicked location');
  });
+
+ // ---- Deterministic fact API (reused by the "Report a New Incident" demo tab). Gathers the SAME
+ // facts a map click computes -- snap, owner, +/-window count, time windows, nearest intersection,
+ // nearest safe crossing -- as a plain object. Code-only; no phrasing, no judgment. ----
+ function statsWindows(c){
+   var xd=c.xd||[],xf=c.xf||[],total=xd.length,deaths=0,i;
+   for(i=0;i<xf.length;i++)if(xf[i])deaths++;
+   var dmax=IDX.meta.dmax;
+   function cut(m){var d=new Date(dmax+'T00:00:00');d.setMonth(d.getMonth()-m);return d;}
+   function win(months){var inc=0,dth=0,co=(months==null?null:cut(months));
+     for(var i=0;i<xd.length;i++){var ok=(months==null);if(!ok&&xd[i])ok=(new Date(xd[i]+'T00:00:00'))>=co;if(ok){inc++;if(xf[i])dth++;}}
+     return {incidents:inc,deaths:dth};}
+   return {coverage_start:IDX.meta.dmin,coverage_end:dmax,total_incidents:total,total_deaths:deaths,
+     since_data_start:win(null),last_12_months:win(12),last_6_months:win(6),last_3_months:win(3),last_1_month:win(1)};
+ }
+ function distM(la1,lo1,la2,lo2){var R=111320,la=(la1+la2)/2*Math.PI/180;var dx=(lo1-lo2)*Math.cos(la)*R,dy=(la1-la2)*R;return Math.sqrt(dx*dx+dy*dy);}
+ function gatherFacts(lat,lon){
+   var xy=prj(lat,lon),px=xy[0],py=xy[1],best=null;
+   IDX.corridors.forEach(function(c){if(c.g)return;(c.mg||[]).forEach(function(line,ci){var r=measureLine(line,px,py);if(!best||r.d<best.d)best={c:c,ci:ci,m:r.m,d:r.d,si:r.si};});});
+   if(!best)return null;
+   var c=best.c,res=netCount(c,best.ci,best.m);
+   var oc=(c.co&&c.co[best.ci]&&c.co[best.ci][best.si]!=null)?c.co[best.ci][best.si]:null;
+   var clusterLen=0;res.comps.forEach(function(cj){clusterLen+=res.g.len[cj];});
+   var S=statsWindows(c);
+   var ni=null,nd=1e9;INTERS.forEach(function(n){var d=distM(lat,lon,n.lat,n.lon);if(d<nd){nd=d;ni=n;}});
+   var atInt=(ni&&nd<=35);
+   return {
+     location:{lat:+(+lat).toFixed(5),lon:+(+lon).toFixed(5)},
+     road:{name:c.disp,owner:(oc==null?'unknown':ownerLabel(oc)),snap_distance_m:Math.round(best.d),owner_varies:allOwners(c).length>1},
+     sidewalk:{present:swAt(c,best.ci,best.si),status:swStatus(swAt(c,best.ci,best.si))},
+     stretch:{window_m:COUNTA_WINDOW_M,crashes:res.n,fatal:res.fat,connected_length_m:Math.round(clusterLen),pieces:(Math.max.apply(null,c.cl)+1),road_split_by_gaps:!!c.rg},
+     time_window:{coverage_start:S.coverage_start,coverage_end:S.coverage_end,total_incidents:S.total_incidents,total_deaths:S.total_deaths,
+       since_data_start:S.since_data_start,last_12_months:S.last_12_months,last_6_months:S.last_6_months,last_3_months:S.last_3_months,last_1_month:S.last_1_month},
+     nearest_intersection:atInt?{name:ni.disp,distance_m:Math.round(nd),crashes:ni.crashes,deaths:ni.deaths,signalized:(ni.sig==='y')}:null,
+     nearest_safe_crossing_ft:(atInt&&ni.near_safe_ft!=null)?ni.near_safe_ft:null
+   };
+ }
+ window.CountA={facts:gatherFacts};   // demo-tab entry point (deterministic; no AI here)
 })();
 """
 
