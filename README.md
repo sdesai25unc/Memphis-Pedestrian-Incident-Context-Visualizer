@@ -29,6 +29,7 @@ Memphis has one of the worst pedestrian fatality rates in the United States, and
 - **Interactive map** — every crash as an individual dot, colored by road owner (City / TDOT state route / limited-access), deaths emphasized; layer toggles, a fatal-only filter, a "hotspots" intensity view, and a TDOT signalized-crossing layer.
 - **Jurisdiction analysis** — a documented, rulebook-driven classifier tags every road segment by owner and attributes each crash to it, with per-crash provenance.
 - **Signal & crossing layers** — the TDOT pedestrian-signal inventory plus OpenStreetMap crosswalks, with an along-corridor distance-to-crossing analysis.
+- **Sidewalk presence** — the City of Memphis sidewalk inventory (46,875 lines) is checked per road location; results read *"Sidewalk present in city inventory"* or *"No sidewalk found in city inventory (absence may reflect incomplete records)"* — never a flat "no sidewalk."
 - **Search** — type-ahead lookup of any corridor or any of the **25,533 street junctions citywide** (built from true geometric centerline intersection, with divided-arterial carriageways consolidated to one node), each with a clean stat card and map highlight; a junction with no recorded crashes returns an honest *"0 incidents reported here,"* never a blank. Address search is wired but pending a backend — see [roadmap](#-status--roadmap).
 - **Findings dashboard** — charts and the deadliest-corridor table, all computed from the data.
 
@@ -62,6 +63,7 @@ This is the real differentiator. Sources and provenance:
 | State routes, city boundary, street centerlines | **City of Memphis Public Works GIS** |
 | Pedestrian signals | **TDOT "ADA Asset Data"** |
 | Crosswalks | **OpenStreetMap** via Overpass (ODbL) |
+| Sidewalks | **City of Memphis** sidewalk inventory |
 | Address geocoding | **US Census Bureau** geocoder |
 
 Credibility principles baked into the pipeline:
@@ -127,9 +129,24 @@ py -m venv .venv
 
 ## 🚦 Status & roadmap
 
-- **Done:** jurisdiction classifier · interactive map + findings dashboard · corridor/intersection search · signalized-crossing analysis · Union Ave distance-to-crossing proof of concept.
-- **In progress:** Vercel deployment (a live URL) + a small serverless geocode proxy so **address search** works in the browser (the Census API blocks direct browser calls).
-- **Next:** live auto-refresh from the crash API · extend the crossing-distance analysis citywide (after OSM ground-truthing) · journalist/AI tools to draft corridor briefs from the data.
+- **Done:** jurisdiction classifier · interactive map + findings dashboard · corridor/intersection search · road-attributed point lookup (address / coordinates / map-click) · signalized-crossing analysis · Union Ave distance-to-crossing proof of concept · **City-of-Memphis sidewalk-presence layer** · **AI-assisted "Report a New Incident" tool (beta)**.
+- **In progress:** Vercel deployment (a live URL).
+- **Next:** live auto-refresh from the crash API · extend the crossing-distance analysis citywide (after OSM ground-truthing).
+
+### "Report a New Incident" tool + environment variables (Vercel)
+
+A journalist enters a location; the **code** gathers verified facts (road, owner, ±300 m crash counts, time windows, nearest crossing, sidewalk presence) and an **AI layer only phrases/frames them** — it never invents or judges data (facts render instantly and independently of the AI). Two serverless functions power it:
+
+| Function | Purpose | Secrets |
+|---|---|---|
+| `api/geocode.js` | US Census address → coordinates | none |
+| `api/incident-context.js` | OpenAI phrasing/framing over the facts | reads env vars (below) |
+
+Set these in **Vercel → Project → Settings → Environment Variables** (never in the repo):
+
+- **`OPENAI_API_KEY`** *(required to enable the AI)* — until it's set the endpoint returns 503 and the page shows *"AI summary unavailable"* (no spend). Locally, dev uses a gitignored `openai_key.txt` instead.
+- **`OPENAI_MODEL`** *(optional)* — the model string (default in code); change here without redeploying.
+- **`INCIDENT_ACCESS_CODE`** *(optional but recommended for a public URL)* — if set, callers must supply this code, so a public page can't spend your OpenAI credits. Also set a **hard spending limit** on the OpenAI key.
 
 ---
 

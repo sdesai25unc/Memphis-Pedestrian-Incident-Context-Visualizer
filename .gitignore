@@ -8,6 +8,9 @@ __pycache__/
 # ── Vercel local CLI artifacts (dashboard deploy doesn't create these) ──
 .vercel/
 
+# ── Secret: OpenAI key for LOCAL dev of the incident tool (prod uses a Vercel env var) ──
+openai_key.txt
+
 # ── OS / editor junk ──────────────────────────────────────────────
 .vscode/
 desktop.ini
@@ -23,6 +26,11 @@ data/raw/memphis_boundary.json
 # ── Large regenerable data (rebuilt by script 05) ─────────────────
 # 91 MB full street network; excluded to keep the repo light.
 data/raw/memphis_streets.geojson
+
+# ── City sidewalk inventory: source zip, extracted .gdb, and the 71 MB reprojected geojson ──
+Memphis_Sidewalks_DMC*.zip
+data/raw/sidewalks_dmc/
+data/processed/memphis_sidewalks_32136.geojson
 
 # ── Loose non-deliverable files ───────────────────────────────────
 Memphis Pedestrian Gap.pdf
