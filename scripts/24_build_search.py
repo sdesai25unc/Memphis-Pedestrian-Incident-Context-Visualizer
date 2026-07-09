@@ -1075,6 +1075,43 @@ _JS = r"""
    countA(e.latlng.lat,e.latlng.lng,'Clicked location');
  });
 
+ // ---- TASK 1: Sidewalk-inventory toggle. Colors the crash-corridor roads by the city sidewalk
+ // flags already built (c.sw, per sub-segment) -- present vs none-found. Off by default; a separate
+ // pane keeps the lines BELOW crash dots and interactive:false so dots/clicks/search are unaffected.
+ var SW_PRESENT='#2a6f97', SW_NONE='#d98324';   // blue = present; amber = none-found (distinct from owner teal/crimson)
+ if(map.createPane&&!map.getPane('swPane')){map.createPane('swPane');map.getPane('swPane').style.zIndex=350;}
+ var swLayer=null;
+ function buildSwLayer(){
+   if(swLayer)return swLayer;
+   swLayer=L.layerGroup();
+   IDX.corridors.forEach(function(c){
+     if(c.g)return; var ll=llOf(c);
+     (c.mg||[]).forEach(function(line,ci){
+       var flags=(c.sw&&c.sw[ci])||[],pts=ll[ci],i=0;
+       while(i<flags.length){var v=flags[i],j=i;while(j<flags.length&&flags[j]===v)j++;   // merge same-status runs
+         L.polyline(pts.slice(i,j+1),{pane:'swPane',color:v?SW_PRESENT:SW_NONE,weight:3,opacity:.8,interactive:false}).addTo(swLayer);
+         i=j;}
+     });
+   });
+   return swLayer;
+ }
+ (function addSwToggle(){
+   var body=document.querySelector('.leaflet-control.panel .panel-body');
+   if(!body)return;   // panel not present -> skip quietly (no interference)
+   function ln(col){return '<span class="line" style="background:'+col+'"></span>';}
+   var wrap=document.createElement('div');
+   wrap.innerHTML='<hr><label><input type="checkbox" id="swToggle"> Sidewalk (city inventory)</label>'+
+     '<div id="swLegend" style="display:none;font-size:12px;line-height:1.75;color:#33444c;margin-top:2px">'+
+       '<div>'+ln(SW_PRESENT)+'Sidewalk in city inventory</div>'+
+       '<div>'+ln(SW_NONE)+'None found in city inventory</div></div>';
+   body.appendChild(wrap);
+   var cb=document.getElementById('swToggle'),leg=document.getElementById('swLegend');
+   cb.addEventListener('change',function(){
+     if(cb.checked){buildSwLayer().addTo(map);leg.style.display='block';}
+     else{if(swLayer)map.removeLayer(swLayer);leg.style.display='none';}
+   });
+ })();
+
  // ---- Deterministic fact API (reused by the "Report a New Incident" demo tab). Gathers the SAME
  // facts a map click computes -- snap, owner, +/-window count, time windows, nearest intersection,
  // nearest safe crossing -- as a plain object. Code-only; no phrasing, no judgment. ----
