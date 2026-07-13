@@ -985,6 +985,8 @@ _TEMPLATE = r"""<!DOCTYPE html>
     padding: 26px 24px 34px; font-size: 12.5px; color: var(--muted); }
   #sitefoot .inner { max-width: 1060px; margin: 0 auto; display: flex; flex-wrap: wrap;
     gap: 8px 26px; justify-content: space-between; }
+  #sitefoot .provenance { flex-basis: 100%; padding-top: 10px; margin-top: 2px;
+    border-top: 1px solid var(--border); color: var(--faint); line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -1006,6 +1008,10 @@ _TEMPLATE = r"""<!DOCTYPE html>
   <span>StreetStat &mdash; pedestrian crash &amp; infrastructure context for Memphis. Built by Samarth Desai.
     <b>Data current through __DMAX_FULL__</b> (state crash file; reporting lag applies).</span>
   <span>Data: TDOT SAFETY &middot; City of Memphis Public Works GIS &middot; TDOT ADA inventory &middot; &copy; OpenStreetMap contributors &middot; US Census geocoder</span>
+  <span class="provenance">All statistics on StreetStat are computed by its own open-source pipeline
+    from public data sources. They are not official figures published by TDOT or the City of Memphis
+    and may differ from official counts due to methodology. Exact attribution and counting methods
+    are documented on the <a href="#/methodology">Methodology page</a>.</span>
 </div></footer>
 </section>
 

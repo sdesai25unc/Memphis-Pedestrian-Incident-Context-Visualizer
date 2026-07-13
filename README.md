@@ -57,14 +57,14 @@ Memphis has one of the worst pedestrian fatality rates in the United States, and
 
 This is the real differentiator. Sources and provenance:
 
-| Layer | Source |
+| Layer | Source (exact origin) |
 |---|---|
-| Pedestrian/non-motorist crashes | Tennessee **SAFETY MapServer** (TDOT), Layer 8 |
-| State routes, city boundary, street centerlines | **City of Memphis Public Works GIS** |
-| Pedestrian signals | **TDOT "ADA Asset Data"** |
-| Crosswalks | **OpenStreetMap** via Overpass (ODbL) |
-| Sidewalks | **City of Memphis** sidewalk inventory |
-| Address geocoding | **US Census Bureau** geocoder |
+| Pedestrian/non-motorist crashes | Tennessee **SAFETY MapServer** (TDOT), Layer 8 — `https://tnmap.tn.gov/arcgis/rest/services/SAFETY/MapForDashboards/MapServer/8/query` (public, no key). Query scope: `County='Shelby' AND PersonType<>'Pedalcyclists'` — pedestrians + other non-motorists in Shelby County; pedalcyclists excluded by design. Coverage window in the current build: **Jan 1, 2023 – May 26, 2026** (the state's rolling ~3-year file; advances on refresh). Full endpoint reference: `outputs/data_source.md` |
+| State routes, city boundary, street centerlines | **City of Memphis Public Works GIS** — ArcGIS REST services (state-route, city-boundary, and street-centerline layers, retrieved by `scripts/02_download_roads.py` and `scripts/05_download_streets.py`); the road-ownership rulebook is derived from these by `scripts/17_classifier.py` |
+| Pedestrian signals | **TDOT "ADA Asset Data"** FeatureServer — geodata.tn.gov Hub item `69511fa73a584e2bb37acfa85b177fa5`, layer 1 (Pedestrian Signal), Shelby County extract (`scripts/19_acquire_ped_signals.py`) |
+| Crosswalks | **OpenStreetMap** via Overpass — © OpenStreetMap contributors, [ODbL](https://opendatacommons.org/licenses/odbl/). Used for the **Union Ave corridor analysis only** so far (citywide use pending imagery ground-truthing) |
+| Sidewalks | **City of Memphis (Engineering)** sidewalk inventory — received June 2026 as a file-geodatabase export (`Memphis_Sidewalks_V2`; zip dated April 2026, internal timestamps January 2025). **Survey vintage unknown**; redistribution permission pending |
+| Address geocoding | **US Census Bureau** onelineaddress geocoder (proxied by `api/geocode.js`; public, no key) |
 
 Credibility principles baked into the pipeline:
 
@@ -152,12 +152,19 @@ Set these in **Vercel → Project → Settings → Environment Variables** (neve
 
 ## Data sources, attribution & license
 
-- **Crashes:** Tennessee SAFETY MapServer (TDOT) — public, no login.
-- **Roads / boundary / streets:** City of Memphis Public Works GIS.
-- **Pedestrian signals:** TDOT "ADA Asset Data."
-- **Crosswalks:** © OpenStreetMap contributors, [ODbL](https://opendatacommons.org/licenses/odbl/).
+- **Crashes:** Tennessee SAFETY MapServer (TDOT), layer 8 (`tnmap.tn.gov/.../SAFETY/MapForDashboards/MapServer/8`) — public, no login; Shelby County pedestrian/non-motorist scope; coverage window Jan 1, 2023 – May 26, 2026 in the current build.
+- **Roads / boundary / streets:** City of Memphis Public Works GIS (ArcGIS REST).
+- **Pedestrian signals:** TDOT "ADA Asset Data" (geodata.tn.gov Hub item `69511fa73a584e2bb37acfa85b177fa5`, layer 1).
+- **Sidewalks:** City of Memphis (Engineering) sidewalk inventory — received June 2026; survey vintage unknown; redistribution permission pending.
+- **Crosswalks:** © OpenStreetMap contributors, [ODbL](https://opendatacommons.org/licenses/odbl/) — Union Ave corridor analysis only.
 - **Geocoding:** US Census Bureau geocoder.
 - Developed in support of pedestrian-safety advocacy with **Street Fair Memphis** and **Innovate Memphis**.
+
+> **Data provenance.** All statistics on StreetStat are computed by its own open-source pipeline from
+> public data sources. They are not official figures published by TDOT or the City of Memphis and may
+> differ from official counts due to methodology. Exact attribution and counting methods are documented
+> on the [Methodology page](https://memphis-pedestrian-incident-context.vercel.app/#/methodology).
+
 - **License:** [MIT](LICENSE) for the code. Source data remains under its respective providers' terms.
 
 ## About
