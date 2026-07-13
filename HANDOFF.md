@@ -13,7 +13,7 @@ and non-motorist crashes **by road design and road ownership** — City of Memph
 Tennessee Department of Transportation (TDOT). It exists to give journalists and advocates a
 citable, verifiable alternative to "the pedestrian made a mistake" framing: every number on the
 site is a share, count, or distance computed from public data, reconciled against fixed totals
-(currently **1,294 crashes / 175 deaths**, Jan 1 2023 – May 26 2026), and stated descriptively —
+(currently **1,337 crashes / 179 deaths**, Jan 1 2023 – Jul 11 2026), and stated descriptively —
 the site never claims a road *caused* a death. It ships as one self-contained web page (map,
 search, location reports, methodology) plus the reproducible Python pipeline that builds it.
 
@@ -61,10 +61,13 @@ not needed for a rebuild. `26_build_incident_demo.py` injects the AI demo tab **
 is deliberately not part of the public build.
 
 **Routine rebuild** (data refresh, no methodology change): `01 → 03 → 06 → 14 → 17 → 21 → 23 → 18
-→ 25 → 24`. Scripts 18 and 24 print a reconciliation (totals, 25-corridor match) on every run —
-**if it doesn't print OK, stop and investigate before deploying.** The current sanity anchors are
-in `CLAUDE.md`; they shift slowly as the state's rolling window advances, so re-verify rather than
-assume.
+→ 25 → 27 → 24` (27 rebuilds the full-network search data so new streets/counts are searchable).
+Scripts 18 and 24 print a reconciliation (totals, 25-corridor match) on every run — **if it doesn't
+print OK, stop and investigate before deploying.** Script 18's check is internal consistency
+against the *current* data; some older scripts (21, 25) additionally print comparisons against the
+*previous* anchors as information — expect those to read "False/CHECK" on a legitimate refresh.
+The sanity anchors in `CLAUDE.md` shift as the state's rolling window advances; update them after
+each verified refresh rather than assuming.
 
 **View locally:** `.\.venv\Scripts\python.exe -m http.server 8000 --directory outputs\interactive_map`
 then open `http://localhost:8000/index.html`. (Address search needs the deployed `/api` functions.)
@@ -73,7 +76,7 @@ then open `http://localhost:8000/index.html`. (Address search needs the deployed
 
 | Source | Origin | Refresh | Caveats |
 |---|---|---|---|
-| **Crashes** | TDOT SAFETY MapServer, layer 8 (`tnmap.tn.gov/arcgis/rest/services/SAFETY/MapForDashboards/MapServer/8/query`) — public, no key. Full reference: `outputs/data_source.md` | Re-run `scripts/01_download_crashes.py` (it re-downloads when the upstream count changes), then the routine rebuild chain | One row per **person**, deduped to crashes; pedalcyclists excluded by design. **Rolling ~3-year window** — old records fall out as new ones arrive. **Freshness measured:** newest upstream record was 1 day old when probed 2026-07-12 (typically ~1–3 days), but recency ≠ completeness — police reports are finalized with a lag, so the last several weeks always undercount. As of this writing the local snapshot ends **2026-05-26** while the endpoint already holds July records — run a refresh before the next publication. |
+| **Crashes** | TDOT SAFETY MapServer, layer 8 (`tnmap.tn.gov/arcgis/rest/services/SAFETY/MapForDashboards/MapServer/8/query`) — public, no key. Full reference: `outputs/data_source.md` | Re-run `scripts/01_download_crashes.py` (it re-downloads when the upstream count changes), then the routine rebuild chain | One row per **person**, deduped to crashes; pedalcyclists excluded by design. **Rolling ~3-year window** — old records fall out as new ones arrive. **Freshness measured:** newest upstream record was 1 day old when probed 2026-07-12 (typically ~1–3 days), but recency ≠ completeness — police reports are finalized with a lag, so the last several weeks always undercount. **Upstream records can also be REMOVED outside the rolling window** (observed in the first live refresh, 2026-07-13: one fatal record deleted at the source between the May and July pulls — not renumbered, not reclassified). Deletions are invisible to date-floor incremental pulls; only a full pull catches them. |
 | **Roads / boundary / street network** | City of Memphis Public Works GIS (ArcGIS REST) | `02` (routes/boundary), `05` (street network) | Network is the city's centerline file; `LANES`/`SPDLIMIT` attributes are the city's, taken as-is |
 | **Sidewalk inventory** | City of Memphis (Engineering) — received June 2026 as `Memphis_Sidewalks_DMC (1).zip` → a `Memphis_Sidewalks_V2` file-geodatabase (zip dated April 2026); 46,875 lines with `STREET_NAME` and `WIDTH` | No refresh endpoint — a new delivery would come from the city. To regenerate the working file: read the GDB layer with geopandas and write `data/processed/memphis_sidewalks_32136.geojson` in EPSG:32136 *(this conversion was a one-off manual step; there is no numbered script for it)* | **Vintage unknown** — the GDB carries no collection-date metadata (internal file timestamps are Jan 2025, which reflects export, not survey date). **Redistribution permission is pending** — do not republish the raw layer until the city confirms. This is why the site only ever says "in city inventory" / "none found in city inventory (absence may reflect incomplete records)" — never a flat "no sidewalk." |
 | **Pedestrian signals** | TDOT "ADA Asset Data" FeatureServer (geodata.tn.gov Hub item `69511fa73a584e2bb37acfa85b177fa5`, layer 1) | Re-run `19 → 20 → 21`, then `25 → 24` | An asset inventory: it records where TDOT has inventoried signals, mostly along state routes. Off covered corridors the site says "not yet analyzed" — absence of inventory is not "no signal" |
@@ -131,6 +134,13 @@ and **cheap count-only probes**. A competent developer can implement:
   update the sanity anchors in `CLAUDE.md`, and redeploy. If reconciliation fails, do not deploy.
 - **Scheduling:** GitHub Actions cron (or any weekly scheduler) is sufficient; total runtime is
   minutes. Keep the raw page dumps it writes out of git (`data/raw/` is already the convention).
+- **First live run of this procedure (2026-07-13), for calibration:** full pull moved the data
+  from 1,294/175 (through 2026-05-26) to **1,337/179 (through 2026-07-11)**: 44 new crashes
+  (5 fatal) after the old cutoff, **0 backfilled** records before it, and **1 record REMOVED
+  upstream** (a fatal; verified absent from the source even unfiltered, and not renumbered —
+  see the Crashes caveat above). The zero-backfill result doesn't invalidate the 30-day overlap
+  (reporting lag guarantees late arrivals eventually); the deletion is the concrete proof that
+  the monthly FULL pull is mandatory.
 - **Display:** the "Data current through …" labels on the site are computed from the data at build
   time, so they update automatically.
 
