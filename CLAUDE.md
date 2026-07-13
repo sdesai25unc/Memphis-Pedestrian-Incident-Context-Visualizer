@@ -42,8 +42,9 @@ Turn public crash data into a Memphis-specific breakdown of pedestrian / non-mot
 
 A correct run should reconcile to these. If it doesn't, stop and report before continuing.
 
-- 1,294 in-Memphis crashes; 175 fatal.
-- Jurisdiction split ≈ 74.7% City / 25.3% TDOT (all crashes); ≈ 70.3% / 29.7% (fatal).
-- `deadliest_streets.csv` ranks 529 streets; the crash counts sum back to 1,294.
+- 1,337 in-Memphis crashes; 179 fatal. (Data window Jan 1, 2023 – Jul 11, 2026; refreshed 2026-07-13.)
+- Jurisdiction split ≈ 79.5% City / 20.5% TDOT (surface crashes); ≈ 71.5% / 28.5% (fatal). Limited-access separate: 35 (14 fatal).
+- `deadliest_streets.csv` ranks 545 streets; the crash counts sum back to 1,337.
+- Top corridors: Poplar 46/9 · Union 37/8 · Lamar 33/7 · Winchester 28/5.
 
 (These shift slowly as the state's rolling ~3-year crash window advances — re-verify rather than assume.)

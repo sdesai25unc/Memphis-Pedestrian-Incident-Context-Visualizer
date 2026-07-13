@@ -1,6 +1,6 @@
 # Union Ave — distance-to-crossing proof of concept
 
-**Status: PRELIMINARY (proof of concept).** The OSM marked-crosswalk layer has not been ground-truthed against imagery (see outputs/osm_crossings_eval.md, "Recommended"); treat the safe-crossing counts, spacing and longest-gap figures as provisional until that check is done.
+**Status: PRELIMINARY (proof of concept).** The OSM marked-crosswalk layer has not been ground-truthed against imagery (see outputs/osm_crossings_eval.md, 'Recommended'); treat the safe-crossing counts, spacing and longest-gap figures as provisional until that check is done.
 
 *Union only. Distances along the centerline (EPSG:32136). Safe crossing = OSM marked crosswalk OR TDOT pedestrian signal within 30 m, deduped (co-located = one).*
 
@@ -16,15 +16,15 @@
 
 ## 3. Union crashes (within 30 m of centerline)
 
-- Total: **41** (8 fatal)  *(deadliest-list anchor ≈ 36/8; the 30 m buffer catches a few more than the nearest-street assignment)*.
-- **Crossing-relevant (On Roadway / In Crosswalk): 36** (7 fatal) — the headline set.
+- Total: **43** (8 fatal)  *(deadliest-list anchor ≈ 36/8; the 30 m buffer catches a few more than the nearest-street assignment)*.
+- **Crossing-relevant (On Roadway / In Crosswalk): 38** (7 fatal) — the headline set.
 - Non-crossing (Outside Traffic / Not on Roadway / Unknown): 5 (1 fatal) — reported, excluded from the distance stat.
 
 ## 4. Distance from a crossing-relevant crash to the nearest safe crossing (along-corridor)
 
-- mean **152 ft (46 m)**, median **4 ft (1 m)**, max 864 ft (263 m).
-- struck **> 100 ft** from the nearest safe crossing: **14/36 (39%)**; **> 250 ft**: **8/36 (22%)**.
-- **Bimodal split:** **22 struck AT/near a Union crossing** (≤100 ft), **8 struck in a gap** (>250 ft), 6 in between — of 36 crossing-relevant.
+- mean **145 ft (44 m)**, median **5 ft (1 m)**, max 864 ft (263 m).
+- struck **> 100 ft** from the nearest safe crossing: **14/38 (37%)**; **> 250 ft**: **8/38 (21%)**.
+- **Bimodal split:** **24 struck AT/near a Union crossing** (≤100 ft), **8 struck in a gap** (>250 ft), 6 in between — of 38 crossing-relevant.
 - fatal crossing-relevant crashes' distances: 0 ft (0 m), 3 ft (1 m), 3 ft (1 m), 65 ft (20 m), 244 ft (74 m), 246 ft (75 m), 864 ft (263 m).
 
 ## 5. Longest gap vs FHWA best-practice spacing
