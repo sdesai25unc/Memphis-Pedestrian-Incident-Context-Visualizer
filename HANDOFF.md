@@ -179,6 +179,64 @@ crashes, deaths *on roads with* 4+ lanes, etc.) — the qualifiers are part of t
 methodology behind any figure, cite the site's Methodology page or `novel_statistics.docx`
 (including its 2026-07-12 correction section).
 
+## 8. Two ways for Innovate Memphis to use StreetStat
+
+Both paths below are open to you, and they are not mutually exclusive.
+
+**Which path do I want?** Improving StreetStat itself → **Path A**. Building something of IM's own
+on top of it → **Path B**. Doing both at once is fine.
+
+### Path A — working on the platform directly
+
+IM team members will be added as collaborators on the repository, which gives you everything:
+the ability to edit, maintain, and improve StreetStat itself — the map, the analysis, the data
+refreshes, all of it.
+
+> **The one thing to internalize before your first push: changes pushed to this repository
+> deploy automatically to the live public site.** There is no separate "publish" step — a push
+> to `main` *is* publishing, and the deploy typically goes live in under a minute.
+
+The safe-change workflow, every time:
+
+1. **Pull the latest** (`git pull`) so you start from exactly what is live.
+2. **Edit locally.**
+3. **Rebuild** using the documented script order (§2). For presentation changes,
+   `scripts/18_build_public_map.py` then `scripts/24_build_search.py` is enough; after a data
+   refresh, run the full routine chain.
+4. **Read the reconciliation the build prints** — it checks the page's numbers against the
+   current data totals. **If it prints FAIL, STOP.** Do not push; something is inconsistent,
+   and pushing would publish it.
+5. **Test on localhost:**
+   `.\.venv\Scripts\python.exe -m http.server 8000 --directory outputs\interactive_map`
+   then open `http://localhost:8000/index.html` and click through what you changed.
+6. **Commit and push.**
+
+A suggestion (not a rule): work through **pull requests with one teammate's review before
+merge**. It costs a few minutes and means no single push can break the live public site.
+
+**Never commit, under any workflow:**
+- **API keys or secrets** — `openai_key.txt` (local dev only) and any `OPENAI_API_KEY` /
+  `INCIDENT_ACCESS_CODE` value. Production secrets live only in Vercel's environment settings.
+- **The gitignored large data files** — `data/raw/memphis_streets.geojson` (~91 MB street
+  network; script 05 regenerates it), the sidewalk delivery (`Memphis_Sidewalks_DMC*.zip` and
+  `data/processed/memphis_sidewalks_32136.geojson` — also pending redistribution permission,
+  §3), and the raw API page dumps (`data/raw/*_page_*.json`).
+
+The `.gitignore` already blocks all of these — never override it with `git add -f`.
+
+### Path B — copying the platform for IM's own use
+
+For **Data Midsouth** or any other IM endeavor: **fork the repository** on GitHub (or clone /
+download a copy). That gives IM a complete, independent copy of all code and data — IM's to
+modify, host, and deploy anywhere, for any purpose, **no permission needed**: the code is
+MIT-licensed (source data remains under its providers' terms, §3; note the sidewalk layer's
+pending redistribution permission before republishing that file).
+
+> Equally important, in the other direction: **changes to a copy never affect the live
+> StreetStat site** — experiment freely. And a copy does **not** receive future StreetStat
+> updates automatically: when you want the latest, re-sync from the repository (GitHub's
+> "Sync fork" button, or `git pull` from the original remote) — entirely on your schedule.
+
 ---
 
 *Code is MIT-licensed. Source data remains under its providers' terms. The pipeline's own rule,
