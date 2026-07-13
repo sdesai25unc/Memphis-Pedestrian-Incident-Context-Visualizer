@@ -1,5 +1,7 @@
 # Union Ave — distance-to-crossing proof of concept
 
+**Status: PRELIMINARY (proof of concept).** The OSM marked-crosswalk layer has not been ground-truthed against imagery (see outputs/osm_crossings_eval.md, "Recommended"); treat the safe-crossing counts, spacing and longest-gap figures as provisional until that check is done.
+
 *Union only. Distances along the centerline (EPSG:32136). Safe crossing = OSM marked crosswalk OR TDOT pedestrian signal within 30 m, deduped (co-located = one).*
 
 ## 1. Corridor

@@ -4,7 +4,7 @@
 
 ![The interactive crash map, with crashes colored by road owner and a findings dashboard](docs/hero.png)
 
-> 🔗 **Live demo: [memphis-pedestrian-incident-context.vercel.app](https://memphis-pedestrian-incident-context.vercel.app/)** — explore the map, search any street / intersection / address, or click anywhere to get a road-attributed crash count. (Also runs locally in ~2 min → [**Run it locally**](#-run-it-locally).)
+> 🔗 **Live demo: [memphis-pedestrian-incident-context.vercel.app](https://memphis-pedestrian-incident-context.vercel.app/)** — explore the map, search any street / intersection / address, or look up any location (address / coordinates) in the Investigate tab for a road-attributed crash report. (Also runs locally in ~2 min → [**Run it locally**](#-run-it-locally).)
 
 ---
 
@@ -20,7 +20,7 @@ Memphis has one of the worst pedestrian fatality rates in the United States, and
 - **76.6% of pedestrian deaths happen after dark**; 14.3% on dark, *unlit* roads.
 - The design signature: **62.9% of deaths are on roads with 4+ lanes** and **60.0% on roads posted ≥40 mph.** Just under half (49.7%) are on roads that are *both* — wide *and* fast.
 - Deaths concentrate on a handful of corridors: **Poplar (44 crashes / 8 fatal), Union (36 / 8), Lamar (30 / 6), Winchester (28 / 5)** lead the ranking of 529 streets.
-- **Proof of concept on Union Ave:** ~**1 in 5** crossing-related crashes happened **more than 250 ft from the nearest safe crossing**, and one **2,921 ft stretch (~9.7× the FHWA ~300 ft best-practice spacing)** has no crossing at all.
+- **Proof of concept on Union Ave (preliminary):** ~**1 in 5** crossing-related crashes happened **more than 250 ft from the nearest safe crossing**, and one **2,921 ft stretch (~9.7× the FHWA ~300 ft best-practice spacing)** has no crossing at all. *These crossing-distance figures are Union-only and provisional pending imagery ground-truthing of the OSM crosswalk layer.*
 
 > The rigor is the point: every number is recomputed from raw data, reconciled to the fixed totals, and stated **descriptively** — the project never claims a road "causes" a death or that one road is "N× deadlier."
 
@@ -125,11 +125,11 @@ py -m venv .venv
 ```
 
 > Serve it over `http://` (step 4), not by double-clicking the file — browsers block some features (like address search) on `file://`.
-> `data/raw/memphis_streets.geojson` is gitignored to keep the repo light; script 05 regenerates it from the live API (so totals may shift slightly as the rolling ~3-year crash window advances).
+> `data/raw/memphis_streets.geojson` is gitignored to keep the repo light; script 05 regenerates it from the source API (so totals may shift slightly as the rolling ~3-year crash window advances).
 
 ## 🚦 Status & roadmap
 
-- **Done:** jurisdiction classifier · interactive map + findings dashboard · corridor/intersection search · road-attributed point lookup (address / coordinates / map-click) · signalized-crossing analysis · Union Ave distance-to-crossing proof of concept · **City-of-Memphis sidewalk-presence layer** · **AI-assisted "Report a New Incident" tool (beta)**.
+- **Done:** jurisdiction classifier · interactive map + findings dashboard · corridor/intersection search · road-attributed point lookup (address / coordinates, in the Investigate tab) · signalized-crossing analysis · Union Ave distance-to-crossing proof of concept (preliminary) · **City-of-Memphis sidewalk-presence layer** · **AI-assisted "Report a New Incident" tool (beta, local demo only — not deployed)**.
 - **In progress:** Vercel deployment (a live URL).
 - **Next:** live auto-refresh from the crash API · extend the crossing-distance analysis citywide (after OSM ground-truthing).
 
@@ -169,3 +169,75 @@ Built by **Samarth Desai**.
 - **Email:** [sdesai25@unc.edu](mailto:sdesai25@unc.edu)
 - **LinkedIn:** [linkedin.com/in/samarthdesai06](https://www.linkedin.com/in/samarthdesai06)
 - **GitHub:** [@sdesai25unc](https://github.com/sdesai25unc)
+
+---
+
+## 🎨 StreetStat UI/UX redesign (2026-07-11 — built locally, NOT yet committed)
+
+The public page was rebranded **StreetStat** and restructured into a four-view product, with the
+underlying data, methodology, and every computed number **unchanged** (regression-verified: 1,294 / 175;
+Poplar 44/8 · Union 36/8 · Lamar 30/6 · Winchester 28/5; all 25 deadliest corridors; `Count-A` facts
+byte-identical at the verification anchors). Presentation-layer work only, in the existing generators:
+
+- **`scripts/18_build_public_map.py`** — now emits the StreetStat shell: Geist / Geist Mono type
+  (fontsource CDN, graceful system-font fallback on `file://`), a neutral design-token system
+  (near-white surface, ink text, indigo accent for interaction only; the semantic data colors —
+  teal = City, crimson = TDOT, charcoal = limited-access, blue/amber = sidewalk — are unchanged),
+  a sticky top nav, and four hash-routed views on the single self-contained page:
+  - **`#/` Home** — hero (name, honest subtitle, thesis) + four computed stat cards + the full
+    findings dashboard (all previous cards/charts/tables, restyled).
+  - **`#/explore`** — the citywide map with a **one-lens-at-a-time** control
+    (Road ownership / Sidewalk inventory / Crash density) replacing the checkbox stack; crash dots
+    stay visible in every lens; *Fatal only* and *Signalized crossings (TDOT)* remain independent
+    toggles; owner rows in the legend click to filter dots; legend shows only the active lens.
+  - **`#/investigate`** — the location microscope: address / coordinates / map-click in, full facts
+    card out (road, owner, snap distance, sidewalk status, ±300 m network-distance count, whole-road
+    totals, always-expanded time table, nearest intersection, nearest safe crossing where analyzed),
+    with the map hard-zoomed to the corridor showing ownership glow + sidewalk-status coloring +
+    the ±300 m window bars + intersection ring at once. Same `snapBest`/`netCount` pipeline as the
+    Explore card, so the numbers are provably identical.
+  - **`#/methodology`** — plain-language, source → rule → limitations documentation of all seven
+    pipeline stages (crash data, road attribution, ownership rulebook, corridors & along-road
+    counting, intersection index, sidewalk presence, safe-crossing PoC), with thresholds stated and
+    per-section script links; counts (junctions, sidewalk lines, crossings, Union PoC figures) are
+    read from the data files at build time.
+- **`scripts/24_build_search.py`** — search/injection bundle restyled onto the design tokens; the
+  sidewalk layer registers as the Explore *Sidewalks* lens; adds the Investigate wiring; and fixes a
+  pre-existing bug where clicking the "Search address:" dropdown row threw a swallowed TypeError
+  (`pick()` now routes address rows to `openAddress` directly).
+- **Not in this build:** the AI "Report a New Incident" tab (script 26 is untouched but not injected;
+  the public page carries only an honest "AI-assisted drafting: in development (beta)" note).
+  `api/geocode.js` is unchanged and still powers address search when deployed.
+
+Build order is unchanged (`18` → `24`); `data/processed/search_index.json` re-emits byte-identical.
+A 40-check headless regression (Playwright + installed Chrome, incl. an emulated `/api/geocode` to
+test address search end-to-end, plus a `file://` degradation pass) passed 40/40 on this build.
+
+### Interaction-model update (2026-07-12 — local, not committed)
+
+- **Click-to-locate removed.** Empty-map clicks no longer run a Count-A lookup; the Investigate tab
+  (address / coordinates) is the only path to a full location report. The popup-timing conflict
+  handler and empty-click marker logic this required were deleted with it.
+- **Features are directly clickable instead.** Crash dots (top click priority), TDOT signal markers
+  (location + inventory provenance), and — with the Sidewalks lens on — sidewalk segments (honest
+  status wording, street name, inventory width where recorded; `sww` width arrays added to the
+  search index). All vectors share one canvas and the lens renderer re-raises signals then dots
+  after every change, so a dot click is never swallowed by a line beneath it (verified with real
+  mouse-click tests on a dot lying directly over a sidewalk line).
+- **Lanes statistic got exposure context.** The findings card now adds a computed caption:
+  roads with 4+ lanes account for **11.3% of surface-street mileage** in the network (lengths in
+  EPSG:32136; LANES joined from the raw city centerline file onto the rulebook network by OBJECTID;
+  lane data covers 100.0% of network mileage). The 62.9%-of-deaths statistic itself is unchanged.
+
+### Search overhaul (2026-07-12 — local, not committed)
+
+Street/intersection search now works to a navigation-tool standard: casual queries
+(case/suffix/directional-blind, "and"/"&"/"@", 1–2-character typos, state-route aliases built
+from the data, e.g. "us 51" → Elvis Presley Blvd) resolve against the embedded index, and a new
+**`/api/locate`** serverless endpoint (backed by a preprocessed ~2.9 MB lookup built by
+`scripts/27_build_locate_index.py`) makes **every named Memphis street (16,719) and every mapped
+junction findable** — including zero-crash residential streets, which return an honest minimal
+card ("0 pedestrian incidents recorded here", owner from the rulebook, "not analyzed" for fields
+we didn't compute). Ambiguous queries (N vs S variants) list candidates and never silent-pick.
+Verified: casual-query hit rate 81% → **100%** on a 186-query test set; all existing features and
+headline stats unchanged (1,294/175 reconciliation printed at build).

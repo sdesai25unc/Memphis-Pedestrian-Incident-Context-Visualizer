@@ -399,10 +399,15 @@ def build_index():
 
     # ---- City sidewalk presence per road sub-segment (deterministic; parallel to `co`) ----
     # For each mg sub-segment midpoint, is a city-inventory sidewalk within SIDEWALK_T metres?
+    # `sww` (added 2026-07-12) mirrors `sw` with the matched inventory line's WIDTH in feet
+    # (0 = not recorded), so the clickable sidewalk layer can show width where available.
     for rec in corridors:
         rec["sw"] = [[0] * max(0, len(comp) - 1) for comp in rec["mg"]]
+        rec["sww"] = [[0] * max(0, len(comp) - 1) for comp in rec["mg"]]
     if SIDEWALKS.exists():
         sw_gdf = gpd.read_file(SIDEWALKS).to_crs(CRS_M)
+        widths = (pd.to_numeric(sw_gdf["WIDTH"], errors="coerce")
+                  if "WIDTH" in sw_gdf.columns else None)
         tree = STRtree(sw_gdf.geometry.values)
         mids, loc = [], []
         for corridor_i, rec in enumerate(corridors):
@@ -411,7 +416,7 @@ def build_index():
                     mids.append(Point((comp[si][0] + comp[si + 1][0]) / 2.0,
                                       (comp[si][1] + comp[si + 1][1]) / 2.0))
                     loc.append((corridor_i, comp_i, si))
-        n_with = 0
+        n_with = n_w = 0
         if mids:
             indices, dists = tree.query_nearest(mids, all_matches=False, return_distance=True)
             for k in range(len(dists)):
@@ -419,9 +424,14 @@ def build_index():
                     ci, cj, si = loc[indices[0][k]]
                     corridors[ci]["sw"][cj][si] = 1
                     n_with += 1
+                    if widths is not None:
+                        w = widths.iloc[int(indices[1][k])]
+                        if pd.notna(w) and w > 0:
+                            corridors[ci]["sww"][cj][si] = int(w)
+                            n_w += 1
         _swpct = round(100.0 * n_with / len(mids), 1) if mids else 0.0
         print(f"  sidewalks: {len(sw_gdf):,} city lines | {n_with:,}/{len(mids):,} road sub-segments "
-              f"have a sidewalk within {SIDEWALK_T:.0f} m ({_swpct}%)")
+              f"have a sidewalk within {SIDEWALK_T:.0f} m ({_swpct}%) | width recorded on {n_w:,}")
     else:
         print(f"  sidewalks: {SIDEWALKS.name} not found -> sidewalk status will read 'no data' "
               f"(run the unzip/convert step first)")
@@ -444,7 +454,13 @@ def build_index():
         intersections.append([" & ".join(sts), round(c.y, 5), round(c.x, 5), cr, dt, sig,
                               (round(nsf / 0.3048) if nsf is not None else None)])
 
-    idx = {"corridors": corridors, "intersections": intersections,
+    # state-route alias table (data-derived, built by script 27) — embedded so the in-page
+    # matcher resolves "sr 23" / "us 51"-style queries without a network round-trip
+    locate_path = PROC / "locate_index.json"
+    alias = (json.loads(locate_path.read_text(encoding="utf-8")).get("alias", {})
+             if locate_path.exists() else {})
+
+    idx = {"corridors": corridors, "intersections": intersections, "alias": alias,
            "meta": {"n_corridors": len(corridors), "n_intersections": len(intersections),
                     "n_intersections_with_crash": with_crash, "total_crashes": int(f.shape[0]),
                     "dmin": DMIN, "dmax": DMAX}}
@@ -486,7 +502,8 @@ def inject(idx):
              '<button id="segCoord">Coordinates</button></span></div>'
              '<input id="searchBox" autocomplete="off" '
              'placeholder="Search a street, intersection, or address…">'
-             '<div id="searchHint">…or click anywhere on the map to locate a point</div>'
+             '<div id="searchHint">Streets, intersections &amp; addresses — for a full location '
+             'report, use <a href="#/investigate">Investigate</a></div>'
              '</div>'
              '<div id="searchDrop"></div><div id="searchCard"></div></div>\n'
              '<script>window.SEARCH_INDEX=' + blob + ';</script>\n'
@@ -686,44 +703,59 @@ def main():
 
 
 _CSS = """<style>
-#searchWrap{position:absolute;z-index:1200;top:12px;right:14px;left:auto;width:min(380px,calc(100vw - 28px));font-family:system-ui,Segoe UI,Roboto,sans-serif}
-@media(max-width:560px){#searchWrap{right:8px;left:8px;width:auto}}
-#searchPanel{background:#fff;border-radius:11px;box-shadow:0 4px 18px rgba(0,0,0,.28);padding:11px 12px}
+/* StreetStat design tokens (defined by the base page, script 18); fallbacks keep this
+   self-sufficient if the injection ever runs against an older template. */
+#searchWrap{position:absolute;z-index:1200;top:14px;left:14px;width:min(360px,calc(100vw - 28px));font-family:var(--sans,system-ui)}
+@media(max-width:560px){#searchWrap{left:10px;width:min(300px,calc(100vw - 232px))}}
+#searchPanel{background:var(--surface,#fff);border:1px solid var(--border,#e4e4e7);border-radius:14px;box-shadow:var(--shadow-md,0 4px 18px rgba(0,0,0,.18));padding:11px 12px}
 #searchTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
-#searchTop .lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#54646c}
-#segMode{display:inline-flex;border:1px solid #cdd6dc;border-radius:8px;overflow:hidden}
-#segMode button{appearance:none;border:none;background:#fff;color:#54646c;font-size:12px;font-weight:600;padding:5px 13px;cursor:pointer;transition:background .12s}
-#segMode button+button{border-left:1px solid #cdd6dc}
-#segMode button.on{background:#14303f;color:#fff}
-#searchBox{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #cdd6dc;border-radius:8px;font-size:14px}
-#searchBox:focus{outline:none;border-color:#2a6f97;box-shadow:0 0 0 3px rgba(42,111,151,.15)}
-#searchHint{font-size:11px;color:#8a9aa2;margin-top:7px}
-#searchDrop{background:#fff;border-radius:9px;margin-top:5px;box-shadow:0 4px 16px rgba(0,0,0,.22);overflow:hidden;display:none}
-#searchDrop .it{padding:8px 13px;cursor:pointer;font-size:13px;border-bottom:1px solid #eef1f3}
-#searchDrop .it:hover,#searchDrop .it.sel{background:#eaf3f7}
-#searchDrop .it b{color:#14303f}
-#searchDrop .it .ty{float:right;color:#8aa;font-size:11px;text-transform:uppercase}
-#searchCard{background:#fff;border-radius:10px;margin-top:6px;box-shadow:0 4px 16px rgba(0,0,0,.22);padding:13px 15px;font-size:13px;line-height:1.55;display:none}
-#searchCard h2{margin:0 0 6px;font-size:16px;color:#14303f}
-#searchCard .na{color:#a06000;font-style:italic}
-#searchCard .x{float:right;cursor:pointer;color:#8aa;font-weight:700}
-#searchCard .row{margin:2px 0}
-#searchCard .cstats{margin-top:7px;border-top:1px solid #eef1f3;padding-top:6px}
-#searchCard #twLink{color:#2a6f97;text-decoration:none;margin-left:4px;cursor:pointer;font-weight:600}
-#searchCard table.tw{width:100%;border-collapse:collapse;margin:6px 0 3px}
-#searchCard table.tw th{text-align:left;font-size:11px;color:#54646c;font-weight:700;border-bottom:1px solid #d9e0e4;padding:3px 6px}
-#searchCard table.tw td{font-size:12px;padding:3px 6px;border-bottom:1px solid #f0f3f5}
-#searchCard table.tw .n{text-align:right;font-variant-numeric:tabular-nums;width:78px}
-#searchCard .twnote{font-size:10.5px;color:#9aa7ad;font-style:italic;margin-top:3px}
-#searchCard .twcov{font-size:11px;color:#54646c;margin-top:2px}
-#searchCard .disclaim{font-size:10.5px;color:#9aa7ad;line-height:1.45;margin-top:8px;border-top:1px solid #eef1f3;padding-top:6px}
+#searchTop .lbl{font-family:var(--mono,monospace);font-size:10.5px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--muted,#71717a)}
+#segMode{display:inline-flex;background:#f4f4f5;border:1px solid var(--border,#e4e4e7);border-radius:8px;padding:2px;gap:2px}
+#segMode button{appearance:none;border:none;background:transparent;border-radius:6px;color:var(--muted,#71717a);font-family:inherit;font-size:12px;font-weight:600;padding:4px 12px;cursor:pointer;transition:background .12s,color .12s}
+#segMode button.on{background:var(--surface,#fff);color:var(--ink,#18181b);box-shadow:0 1px 2px rgba(24,24,27,.08)}
+#searchBox{width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border-strong,#d4d4d8);border-radius:9px;font-family:inherit;font-size:14px;color:var(--ink,#18181b);background:var(--surface,#fff)}
+#searchBox:focus{outline:none;border-color:var(--accent,#4f46e5);box-shadow:0 0 0 3px var(--accent-soft,#eef2ff)}
+#searchHint{font-size:11px;color:var(--muted,#8a9aa2);margin-top:7px}
+#searchDrop{background:var(--surface,#fff);border:1px solid var(--border,#e4e4e7);border-radius:10px;margin-top:6px;box-shadow:var(--shadow-lg,0 4px 16px rgba(0,0,0,.18));overflow:hidden;display:none}
+#searchDrop .it{padding:8px 13px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border,#eef1f3)}
+#searchDrop .it:last-child{border-bottom:none}
+#searchDrop .it:hover,#searchDrop .it.sel{background:var(--accent-soft,#eef2ff)}
+#searchDrop .it b{color:var(--ink,#18181b)}
+#searchDrop .it .ty{float:right;color:var(--faint,#a1a1aa);font-family:var(--mono,monospace);font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+#searchDrop .it.deadrow{color:var(--faint,#a1a1aa);font-style:italic;cursor:default}
+#searchDrop .it.deadrow:hover{background:var(--surface,#fff)}
+#searchCard{background:var(--surface,#fff);border:1px solid var(--border,#e4e4e7);border-radius:12px;margin-top:6px;box-shadow:var(--shadow-lg,0 4px 16px rgba(0,0,0,.18));padding:13px 15px;font-size:13px;line-height:1.55;display:none;max-height:calc(100vh - 240px);overflow-y:auto}
+#searchCard h2{margin:0 0 6px;font-size:15.5px;letter-spacing:-.01em;color:var(--ink,#18181b)}
+#searchCard .x{float:right;cursor:pointer;color:var(--faint,#a1a1aa);font-weight:700}
+#searchCard .x:hover{color:var(--ink,#18181b)}
+#searchCard .cstats{margin-top:7px;border-top:1px solid var(--border,#eef1f3);padding-top:6px}
+#searchCard #twLink{color:var(--accent-ink,#4338ca);text-decoration:none;margin-left:4px;cursor:pointer;font-weight:600}
+#searchCard .row,#invCard .row{margin:2.5px 0}
+#searchCard .row b,#invCard .row b{color:var(--ink-2,#3f3f46)}
+#searchCard .na,#invCard .na{color:#a06000;font-style:italic}
+#searchCard table.tw,#invCard table.tw{width:100%;border-collapse:collapse;margin:8px 0 3px}
+#searchCard table.tw th,#invCard table.tw th{text-align:left;font-family:var(--mono,monospace);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted,#71717a);font-weight:500;border-bottom:1px solid var(--border-strong,#d9e0e4);padding:3px 6px}
+#searchCard table.tw td,#invCard table.tw td{font-size:12px;padding:3.5px 6px;border-bottom:1px solid var(--border,#f0f3f5)}
+#searchCard table.tw .n,#invCard table.tw .n{text-align:right;font-family:var(--mono,monospace);font-variant-numeric:tabular-nums;width:78px}
+#searchCard .twnote,#invCard .twnote{font-size:10.5px;color:var(--faint,#9aa7ad);font-style:italic;margin-top:3px}
+#searchCard .twcov,#invCard .twcov{font-size:11px;color:var(--muted,#54646c);margin-top:2px}
+#searchCard .disclaim,#invCard .disclaim{font-size:10.5px;color:var(--faint,#9aa7ad);line-height:1.45;margin-top:8px;border-top:1px solid var(--border,#eef1f3);padding-top:6px}
+/* Investigate facts card */
+.inv-card{background:var(--surface,#fff);border:1px solid var(--border,#e4e4e7);border-radius:12px;box-shadow:var(--shadow-sm,0 1px 2px rgba(24,24,27,.06));padding:14px 16px;font-size:13.5px;line-height:1.6}
+.inv-card h3{margin:0 0 2px;font-size:16px;letter-spacing:-.01em;color:var(--ink,#18181b)}
+.inv-coords{font-family:var(--mono,monospace);font-size:11.5px;color:var(--muted,#71717a);margin-bottom:9px}
 </style>"""
 
 _JS = r"""
 (function(){
  var IDX=window.SEARCH_INDEX, box=document.getElementById('searchBox'),
      drop=document.getElementById('searchDrop'), card=document.getElementById('searchCard');
- var layer=L.layerGroup().addTo(map);
+ var layer=L.layerGroup().addTo(map);      // explore-view highlights (search / click cards)
+ var invLayer=L.layerGroup().addTo(map);   // investigate-view microscope layers
+ // StreetStat shell (script 18): dock the search panel inside the Explore map slot so it
+ // travels with that view. If the shell is absent (older template), it stays where it is.
+ (function(){var w=document.getElementById('searchWrap'),s=document.getElementById('mapSlotExplore');
+  if(w&&s)s.appendChild(w);})();
  function norm(s){return (s||'').toLowerCase().replace(/\band\b/g,'&').replace(/[^a-z0-9& ]/g,' ').replace(/\s+/g,' ').trim();}
  function toks(s){return norm(s).replace(/&/g,' ').split(' ').filter(Boolean);}
  // searchable items (intersections arrive packed as [disp,lat,lon,crashes,deaths,sig,near_safe_ft])
@@ -731,6 +763,161 @@ _JS = r"""
  var INTERS=IDX.intersections.map(function(a){return {disp:a[0],lat:a[1],lon:a[2],crashes:a[3],deaths:a[4],sig:a[5],near_safe_ft:a[6]};});
  IDX.corridors.forEach(function(c){items.push({t:'corridor',disp:c.disp,blob:norm(c.disp),score:c.total,ref:c});});
  INTERS.forEach(function(n){items.push({t:'intersection',disp:n.disp,blob:norm(n.disp),score:n.crashes,ref:n});});
+
+ // ================= FORGIVING MATCHING (casual queries; mirrors api/locate.js) =================
+ // suffix-blind, directional-blind, and/&/@, alias-aware, typo-tolerant. Keep the word lists in
+ // sync with api/locate.js and scripts/27_build_locate_index.py.
+ var SUFW={avenue:1,ave:1,street:1,st:1,road:1,rd:1,boulevard:1,blvd:1,drive:1,dr:1,parkway:1,pkwy:1,
+   highway:1,hwy:1,lane:1,ln:1,court:1,ct:1,place:1,pl:1,circle:1,cir:1,pike:1,way:1,cove:1,cv:1,
+   terrace:1,ter:1,ext:1,expressway:1,expy:1};
+ var DIRW={n:'n',s:'s',e:'e',w:'w',north:'n',south:'s',east:'e',west:'w'};
+ function baseOf(s){
+   var w=(s||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim().split(' ').filter(Boolean);
+   var dir=null;
+   if(w.length>1&&DIRW[w[0]]!=null){dir=DIRW[w[0]];w=w.slice(1);}
+   if(w.length>1&&SUFW[w[w.length-1]])w=w.slice(0,-1);
+   return {b:w.join(' '),dir:dir};
+ }
+ function lev(a,b,max){
+   if(Math.abs(a.length-b.length)>max)return max+1;
+   var prev=[],i,j;for(j=0;j<=b.length;j++)prev[j]=j;
+   for(i=1;i<=a.length;i++){var cur=[i],rowMin=i;
+     for(j=1;j<=b.length;j++){cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));if(cur[j]<rowMin)rowMin=cur[j];}
+     if(rowMin>max)return max+1;prev=cur;}
+   return prev[b.length];
+ }
+ var ALIAS=IDX.alias||{};
+ var corrByBase={};IDX.corridors.forEach(function(c){var b=baseOf(c.disp).b;(corrByBase[b]=corrByBase[b]||[]).push(c);});
+ var nodePartsArr=INTERS.map(function(n){return n.disp.split(' & ').map(function(p){return baseOf(p).b;});});
+ var nodeByBase={};nodePartsArr.forEach(function(parts,i){parts.forEach(function(b){(nodeByBase[b]=nodeByBase[b]||[]).push(i);});});
+ var VOCAB=Object.keys(nodeByBase);Object.keys(corrByBase).forEach(function(b){if(!nodeByBase[b])VOCAB.push(b);});
+ // one query part -> {bases:{base:quality}, dir}: exact/alias 4, prefix 3, fuzzy 2, contains 1.
+ // Fuzzy runs only when the cheap tiers found nothing (keystroke performance); api/locate is the
+ // authority for hard typos anyway.
+ function matchPart(raw){
+   var bo=baseOf(raw),part=bo.b,out={},n=0;
+   if(!part)return {bases:out,dir:bo.dir};
+   var key=(raw||'').toLowerCase().replace(/\s+/g,' ').trim();
+   var members=ALIAS[key]||ALIAS[part];
+   if(members){members.forEach(function(m){out[baseOf(m).b]=4;n++;});}
+   if(corrByBase[part]||nodeByBase[part]){out[part]=4;n++;}
+   var pre=0,sub=0,i;
+   for(i=0;i<VOCAB.length;i++){var v=VOCAB[i];
+     if(v===part)continue;
+     if(v.indexOf(part)===0){if(pre<40&&!(out[v]>=3)){out[v]=3;pre++;n++;}}
+     else if(part.length>=5&&sub<40&&v.indexOf(part)>=0){if(out[v]==null){out[v]=1;sub++;n++;}}
+   }
+   if(!n&&part.length>=4){
+     var tol=part.length<6?1:2,best=tol+1,fz=[];
+     for(i=0;i<VOCAB.length;i++){var d=lev(part,VOCAB[i],tol);
+       if(d<best){best=d;fz=[VOCAB[i]];}else if(d===best&&d<=tol)fz.push(VOCAB[i]);}
+     if(best<=tol)fz.slice(0,25).forEach(function(v){if(!(out[v]>=2))out[v]=2;});
+   }
+   return {bases:out,dir:bo.dir};
+ }
+ function dirBoost(disp,base,dir){   // +0.5 when the display's directional prefix matches the query's
+   if(!dir)return 0;
+   var hit=disp.toLowerCase().split(' & ').some(function(p){var w=p.trim().split(' ');
+     return DIRW[w[0]]===dir&&baseOf(p).b===base;});
+   return hit?0.5:0;
+ }
+ function forgivingMatches(q){
+   var parts=q.split(/\s*(?:\band\b|&|@)\s*/i).map(function(s){return s.trim();}).filter(Boolean);
+   var out=[];
+   if(parts.length>=2){
+     var sets=parts.map(matchPart),ok=sets.every(function(s){var k;for(k in s.bases)return true;return false;});
+     if(!ok)return out;
+     var pool={},b0;for(b0 in sets[0].bases)(nodeByBase[b0]||[]).forEach(function(i){pool[i]=1;});
+     var cand=[];
+     Object.keys(pool).forEach(function(i){
+       i=+i;var np=nodePartsArr[i],used={},qsum=0,good=true;
+       for(var pi=0;pi<sets.length;pi++){
+         var found=-1,fq=0;
+         for(var k=0;k<np.length;k++){var qq=sets[pi].bases[np[k]];
+           if(!used[k]&&qq!=null){qq+=dirBoost(INTERS[i].disp,np[k],sets[pi].dir);
+             if(qq>fq){fq=qq;found=k;}}}
+         if(found<0){good=false;break;}
+         used[found]=1;qsum+=fq;
+       }
+       if(good)cand.push({t:'intersection',disp:INTERS[i].disp,score:INTERS[i].crashes,ref:INTERS[i],q:qsum});
+     });
+     cand.sort(function(a,b){return (b.q-a.q)||(b.score-a.score);});
+     // ambiguity: dirless query resolving to multiple directional peers -> flag, never auto-pick
+     var dirless=sets.some(function(s){return !s.dir;});
+     if(dirless&&cand.length>1&&cand[0].q===cand[1].q){cand[0].amb=true;cand[1].amb=true;}
+     return cand.slice(0,8);
+   }
+   var m=matchPart(q),cand2=[],b;
+   for(b in m.bases){(corrByBase[b]||[]).forEach(function(c){
+     cand2.push({t:'corridor',disp:c.disp,score:c.total,ref:c,q:m.bases[b]+dirBoost(c.disp,b,m.dir)});});}
+   cand2.sort(function(a,b2){return (b2.q-a.q)||(b2.score-a.score);});
+   if(cand2.length>1&&!m.dir&&cand2[0].q===cand2[1].q&&baseOf(cand2[0].disp).b===baseOf(cand2[1].disp).b){
+     cand2[0].amb=true;cand2[1].amb=true;}
+   return cand2.slice(0,8);
+ }
+
+ // ---- /api/locate fallback: the full street network, server-side (deployed site only) ----
+ var locateTimer=null,locateCtl=null,locateSeq=0;
+ function ownerLabelNum(o){return o===0?'City of Memphis':o===1?'TDOT / State':'Limited-access (TDOT)';}
+ function fmtFullDate(d){if(!d)return '?';var p=d.split('-'),M=['January','February','March','April','May','June','July','August','September','October','November','December'];return M[(+p[1])-1]+' '+(+p[2])+', '+p[0];}
+ function scheduleLocate(q,wantsInt){
+   if(locateTimer)clearTimeout(locateTimer);
+   var seq=++locateSeq;
+   locateTimer=setTimeout(function(){
+     if(locateCtl&&locateCtl.abort)try{locateCtl.abort();}catch(e){}
+     locateCtl=('AbortController' in window)?new AbortController():null;
+     fetch('/api/locate?q='+encodeURIComponent(q),{signal:locateCtl?locateCtl.signal:undefined})
+       .then(function(r){return r.json();})
+       .then(function(j){
+         if(seq!==locateSeq||box.value.trim()!==q)return;   // stale response
+         var add=[];
+         ((j&&j.candidates)||[]).forEach(function(c){
+           if(c.kind==='street'){
+             // a street that IS a crash corridor should open its full corridor card instead
+             var cor=IDX.corridors.filter(function(x){return x.disp===c.name;})[0];
+             if(cor){add.push({t:'corridor',disp:cor.disp,score:cor.total,ref:cor});return;}
+             add.push({t:'street · network',disp:c.name,score:0,ref:c,net:1});
+           }else{
+             add.push({t:'intersection · network',disp:c.name,score:c.crashes,
+               ref:{disp:c.name,lat:c.lat,lon:c.lon,crashes:c.crashes,deaths:c.deaths,sig:c.sig,near_safe_ft:null},net:1});
+           }
+         });
+         if(!add.length){appendRows([{t:'no result',disp:'No matching street or intersection in the Memphis network',dead:1}]);return;}
+         appendRows(add);
+       })
+       .catch(function(){
+         if(seq!==locateSeq)return;
+         // street intent: only a corridor/network-street row counts as "resolved" — an
+         // intersection containing the name is real info but the street itself still
+         // needs the online endpoint, so say so honestly
+         var resolved=cur.some(function(it){return it.net||it.t==='corridor'||(wantsInt&&it.t==='intersection');});
+         if(!resolved)appendRows([{t:'offline',disp:'Full-network street search needs the online version',dead:1}]);
+       });
+   },350);
+ }
+ // honest minimal card for a street outside the analyzed crash-corridor set (Part 4)
+ function openNetworkStreet(c){
+   clear();
+   var bnds=L.latLngBounds([[c.bbox[0],c.bbox[1]],[c.bbox[2],c.bbox[3]]]);
+   L.rectangle(bnds,{color:'#4f46e5',weight:2,dashArray:'6 5',fill:false,interactive:false}).addTo(layer);
+   try{map.fitBounds(bnds.pad(0.5),{maxZoom:17});}catch(e){}
+   var range=fmtFullDate(IDX.meta.dmin)+' – '+fmtFullDate(IDX.meta.dmax);
+   var mi=(c.length_m/1609.344);
+   showCard('<h2>'+c.name+'</h2>'+
+     '<div class="row" style="color:var(--muted,#71717a)">Found on the full Memphis street network</div>'+
+     row('Pedestrian incidents','<b>'+c.crashes+' recorded here</b> ('+range+')')+
+     row('Road owner',ownerLabelNum(c.owner)+' <span style="color:var(--muted,#71717a)">(dominant along the street, from the ownership rulebook)</span>')+
+     row('Street length',(mi<0.1?Math.round(c.length_m)+' m':mi.toFixed(1)+' mi'))+
+     row('Sidewalk (city inventory)','<span class="na">not analyzed for this street</span> — sidewalk flags are computed along roads with ≥1 recorded crash')+
+     row('±'+COUNTA_WINDOW_M+' m stretch analysis','<span class="na">not available</span> — this street is outside the crash-corridor set')+
+     row('Signalized crossings',na()));
+ }
+ function appendRows(add){
+   var have={};cur.forEach(function(it){have[it.t+'|'+it.disp]=1;});
+   var merged=cur.slice();
+   add.forEach(function(it){if(!have[it.t+'|'+it.disp]){merged.push(it);have[it.t+'|'+it.disp]=1;}});
+   render(merged.slice(0,12));
+ }
 
  function clear(){layer.clearLayers();}
  function showCard(html){card.innerHTML='<span class="x" onclick="this.parentNode.style.display=\'none\'">✕</span>'+html;card.style.display='block';}
@@ -837,11 +1024,14 @@ _JS = r"""
    }
    return null;
  }
- // a short perpendicular cross-bar marking one end of the +/-window (clamped within the component)
- function drawWindowTick(line,target,color){
+ // a short perpendicular cross-bar marking one end of the +/-window (clamped within the component).
+ // grp: layer group to draw into (default = explore highlight layer); acc: collects the bar
+ // endpoints so the Investigate view can zoom to the exact ±window stretch.
+ function drawWindowTick(line,target,color,grp,acc){
    var H=22,t=tickAt(line,target);if(!t)return;
    var a=iprj(t.x+t.perp[0]*H,t.y+t.perp[1]*H),b=iprj(t.x-t.perp[0]*H,t.y-t.perp[1]*H);
-   L.polyline([a,b],{color:color,weight:4,opacity:.95,interactive:false}).addTo(layer);
+   L.polyline([a,b],{color:color,weight:4,opacity:.95,interactive:false}).addTo(grp||layer);
+   if(acc){acc.push(a);acc.push(b);}
  }
 
  // ----- road ownership (Change 1). Reuse the map's City/TDOT/Limited colors -- no new green/red. -----
@@ -902,31 +1092,37 @@ _JS = r"""
    return {n:n,fat:fat,comps:comps,g:g,dist:dist};
  }
  // draw the +/-window frontier bars over the cluster; returns how many were drawn (>=2 => not clamped)
- function drawFrontier(c,res,ci,m){
+ function drawFrontier(c,res,ci,m,grp,acc){
    var g=res.g,dist=res.dist,W=COUNTA_WINDOW_M,drawn=0;
    res.comps.forEach(function(cj){var line=c.mg[cj],Lj=g.len[cj];
      if(cj===ci){
-       if(m-W>=0){drawWindowTick(line,m-W,'#e8590c');drawn++;}
-       if(m+W<=Lj){drawWindowTick(line,m+W,'#e8590c');drawn++;}
+       if(m-W>=0){drawWindowTick(line,m-W,'#e8590c',grp,acc);drawn++;}
+       if(m+W<=Lj){drawWindowTick(line,m+W,'#e8590c',grp,acc);drawn++;}
      }else{
        var dS=dist[g.en[cj][0]],dE=dist[g.en[cj][1]];
-       if(dS!=null&&dS<=W){var x=W-dS;if(x>0&&x<Lj){drawWindowTick(line,x,'#e8590c');drawn++;}}
-       if(dE!=null&&dE<=W){var x2=Lj-(W-dE);if(x2>0&&x2<Lj){drawWindowTick(line,x2,'#e8590c');drawn++;}}
+       if(dS!=null&&dS<=W){var x=W-dS;if(x>0&&x<Lj){drawWindowTick(line,x,'#e8590c',grp,acc);drawn++;}}
+       if(dE!=null&&dE<=W){var x2=Lj-(W-dE);if(x2>0&&x2<Lj){drawWindowTick(line,x2,'#e8590c',grp,acc);drawn++;}}
      }});
    return drawn;
  }
 
- // THE one shared pipeline. Address, coordinates, and map-click all call this.
+ // (a) snap to the nearest crash-corridor COMPONENT (EPSG:32136 m). Skip generic names (Change 2).
+ // Shared by BOTH renderers (Explore's compact card and Investigate's microscope), so a given
+ // point always resolves to the identical road/component/measure.
+ function snapBest(lat,lon){
+   var xy=prj(lat,lon),px=xy[0],py=xy[1],ranked=[];
+   IDX.corridors.forEach(function(c){if(c.g)return;(c.mg||[]).forEach(function(line,ci){
+     var r=measureLine(line,px,py);ranked.push({c:c,ci:ci,m:r.m,d:r.d,si:r.si});});});
+   ranked.sort(function(a,b){return a.d-b.d;});
+   return ranked;
+ }
+
+ // THE one shared pipeline. Explore's address and coordinate searches both call this.
  function countA(lat,lon,srcLabel){
    clear();
    L.marker([lat,lon]).addTo(layer);map.setView([lat,lon],16);
-   var xy=prj(lat,lon),px=xy[0],py=xy[1];
-   // (a) snap to the nearest crash-corridor COMPONENT (EPSG:32136 m). Skip generic names (Change 2).
-   var ranked=[];
-   IDX.corridors.forEach(function(c){if(c.g)return;(c.mg||[]).forEach(function(line,ci){
-     var r=measureLine(line,px,py);ranked.push({c:c,ci:ci,m:r.m,d:r.d,si:r.si});});});
+   var ranked=snapBest(lat,lon);
    if(!ranked.length){showCard('<h2>'+srcLabel+'</h2>'+row('Result','no road geometry available'));return;}
-   ranked.sort(function(a,b){return a.d-b.d;});
    var hit=ranked[0],alt=null;
    for(var i=1;i<ranked.length;i++){if(ranked[i].c.raw!==hit.c.raw){alt=ranked[i];break;}}
    var ambiguous=alt&&(alt.d-hit.d)<=15;
@@ -983,7 +1179,7 @@ _JS = r"""
    var sig=c.n_signalized==null?na():(c.n_signalized+' signalized');
    var safe=c.safe?(c.safe.n_safe+' safe crossings ('+c.safe.n_signalized+' signalized + '+c.safe.n_marked_only+
      ' marked-only) · '+c.safe.pct_over_250ft+'% of crossing-relevant crashes >250 ft from one · longest gap '+
-     c.safe.longest_gap_ft.toLocaleString()+' ft'):na();
+     c.safe.longest_gap_ft.toLocaleString()+' ft <span class="na">(proof of concept — preliminary, pending ground-truthing)</span>'):na();
    showCard('<h2>'+c.disp+'</h2>'+row('Deadliest rank','#'+c.rank)+row('Crashes',c.total+' ('+c.fatal+' fatal)')+
      row('Road',roadOwn)+row('Crashes by owner',own)+row('Signalized intersections',sig)+row('Safe crossings',safe)+
      statsTable(c));    // whole-corridor time breakdown (Change 4)
@@ -1023,11 +1219,18 @@ _JS = r"""
 
  var sel=-1,cur=[];
  function render(list){cur=list;sel=-1;if(!list.length){drop.style.display='none';return;}
-   drop.innerHTML=list.map(function(it,i){return '<div class="it" data-i="'+i+'"><b>'+it.disp+'</b><span class="ty">'+it.t+'</span></div>';}).join('');
+   drop.innerHTML=list.map(function(it,i){return '<div class="it'+(it.dead?' deadrow':'')+'" data-i="'+i+'"><b>'+it.disp+'</b>'+
+     (it.amb?'<span class="ty">choose one</span>':'<span class="ty">'+it.t+'</span>')+'</div>';}).join('');
    drop.style.display='block';
    Array.prototype.forEach.call(drop.children,function(el){el.onclick=function(){pick(cur[+el.dataset.i]);};});
  }
- function pick(it){box.value=it.disp;drop.style.display='none';if(it.t==='corridor')openCorridor(it.ref);else openInter(it.ref);}
+ // NOTE: 'address' rows must route to openAddress here — the old code let pick() fall through to
+ // openInter(undefined) (a swallowed TypeError) and relied on a second delegated click listener.
+ function pick(it){if(!it||it.dead)return;box.value=it.disp;drop.style.display='none';
+   if(it.t==='address'){openAddress(it.addr);}
+   else if(it.t==='corridor'){openCorridor(it.ref);}
+   else if(it.t==='street · network'){openNetworkStreet(it.ref);}
+   else{openInter(it.ref);}}
  var mode='address',segAddr=document.getElementById('segAddr'),segCoord=document.getElementById('segCoord');
  // segmented control: the ACTIVE segment is the current input mode (standard, unambiguous).
  function applyMode(){
@@ -1043,43 +1246,69 @@ _JS = r"""
    if(mode==='coord'){drop.style.display='none';return;}    // coords mode: parse on Enter, no suggestions
    var q=box.value.trim();if(q.length<2){drop.style.display='none';return;}
    var tq=toks(q);
+   // fast path (unchanged): every token a substring of the item's display
    var matches=items.filter(function(it){return tq.every(function(t){return it.blob.indexOf(t)>=0;});})
      .sort(function(a,b){return b.score-a.score;}).slice(0,8);
-   if(/\d/.test(q)&&/\d+\s+\S/.test(q)){matches.unshift({t:'address',disp:'Search address: "'+q+'"',addr:q});}
+   var isAddr=/\d/.test(q)&&/\d+\s+\S/.test(q);
+   // forgiving pass: suffix/directional-blind, alias-aware, typo-tolerant. Exact-quality
+   // forgiving hits (incl. alias groups) lead; then the fast-path rows; then weaker fuzzies.
+   if(!isAddr){
+     var fg=forgivingMatches(q),strong=[],weak=[];
+     fg.forEach(function(it){(it.q>=4?strong:weak).push(it);});
+     var merged=[],have={};
+     strong.concat(matches).concat(weak).forEach(function(it){
+       var k=it.t+'|'+it.disp;
+       if(!have[k]&&merged.length<12){have[k]=1;merged.push(it);}});
+     matches=merged;
+   }
+   if(isAddr){matches.unshift({t:'address',disp:'Search address: "'+q+'"',addr:q});}
    else if(!matches.length){matches=[{t:'address',disp:'Search address: "'+q+'"',addr:q}];}
    render(matches);
+   // full-network fallback (/api/locate) when the in-page index cannot resolve the query type.
+   // Street intent: only an EXACT-quality corridor match suppresses the network lookup — a
+   // prefix/fuzzy corridor hit (e.g. "kings" -> Kings Trail Cv) must not hide the ~16k
+   // non-corridor streets (Kings Court etc.).
+   if(!isAddr){
+     var wantsInt=/(\band\b|&|@)/i.test(q);
+     var hasInt=matches.some(function(it){return it.t==='intersection';});
+     var exactCorr=matches.some(function(it){return it.t==='corridor'&&(it.q>=4||baseOf(it.disp).b===baseOf(q).b);});
+     if((wantsInt&&!hasInt)||(!wantsInt&&!exactCorr))scheduleLocate(q,wantsInt);
+   }
  });
  box.addEventListener('keydown',function(e){
    if(mode==='coord'){if(e.key==='Enter'){runCoords(box.value.trim());drop.style.display='none';}return;}
    if(drop.style.display==='none')return;
    if(e.key==='ArrowDown'){sel=Math.min(sel+1,cur.length-1);}
    else if(e.key==='ArrowUp'){sel=Math.max(sel-1,0);}
-   else if(e.key==='Enter'){var it=cur[sel<0?0:sel];if(it){if(it.t==='address')openAddress(it.addr);else pick(it);drop.style.display='none';}return;}
+   else if(e.key==='Enter'){var it=cur[sel<0?0:sel];
+     if(it&&it.dead)return;
+     if(sel<0&&it&&it.amb){e.preventDefault();return;}   // ambiguous (e.g. N vs S) -> keep the list, never silent-pick
+     if(it){if(it.t==='address')openAddress(it.addr);else pick(it);drop.style.display='none';}return;}
    else return;
    Array.prototype.forEach.call(drop.children,function(el,i){el.className='it'+(i===sel?' sel':'');});
    e.preventDefault();
  });
  document.addEventListener('click',function(e){if(!document.getElementById('searchWrap').contains(e.target))drop.style.display='none';});
- // allow clicking the "Search address" row
- drop.addEventListener('click',function(e){var el=e.target.closest('.it');if(el&&cur[+el.dataset.i]&&cur[+el.dataset.i].t==='address'){openAddress(cur[+el.dataset.i].addr);drop.style.display='none';}});
+ // (the old delegated "Search address" click listener is gone — pick() handles address rows directly,
+ //  which also removes the double-dispatch where both listeners fired on one click)
 
- // CHANGE 3 -- click-to-locate. Resolution of the click conflict: clicking a crash/cross dot
- // opens ITS popup (Leaflet fires 'popupopen'); we record the time and have the map-click handler
- // skip locate within 80 ms, so a dot-click never doubles as a locate. Clicking empty map or a
- // road centerline (no popup) runs the same Count A pipeline. Zoom buttons and the layer panel are
- // separate DOM controls and never emit a map 'click', so they are unaffected.
- var _lastPopup=0;
- map.on('popupopen',function(){_lastPopup=Date.now();});
- map.on('click',function(e){
-   if(Date.now()-_lastPopup<80)return;
-   countA(e.latlng.lat,e.latlng.lng,'Clicked location');
- });
+ // Click-to-locate was REMOVED (2026-07-12): empty-map clicks no longer run Count A, so the
+ // popup-timing conflict handler it required is gone too. Map clicks now belong to FEATURES only
+ // (crash dots / signals / sidewalk segments — each carries its own popup); a full location
+ // report is reached through the Investigate tab (address or coordinates).
 
- // ---- TASK 1: Sidewalk-inventory toggle. Colors the crash-corridor roads by the city sidewalk
- // flags already built (c.sw, per sub-segment) -- present vs none-found. Off by default; a separate
- // pane keeps the lines BELOW crash dots and interactive:false so dots/clicks/search are unaffected.
+ // ---- Sidewalk-inventory lens layer. Colors the crash-corridor roads by the city sidewalk flags
+ // (c.sw) with inventory widths (c.sww). CLICKABLE (2026-07-12): each segment pops its honest
+ // status + street name + width where recorded. The lines draw on the SHARED canvas — a separate
+ // lower pane would never receive DOM clicks under the overlay canvas — and the lens system's
+ // raise() ordering keeps crash dots and signals ABOVE them in click priority.
  var SW_PRESENT='#2a6f97', SW_NONE='#d98324';   // blue = present; amber = none-found (distinct from owner teal/crimson)
- if(map.createPane&&!map.getPane('swPane')){map.createPane('swPane');map.getPane('swPane').style.zIndex=350;}
+ function swPopup(disp,v,w){
+   return '<b>'+disp+'</b><br>'+
+     (v?'Sidewalk in city inventory':'None found in city inventory (absence may reflect incomplete records)')+
+     ((v&&w)?'<br>Inventory width: '+w+' ft':'')+
+     '<br><span style="font-size:11px;color:#71717a">City of Memphis sidewalk inventory · matched within 20 m of the road centerline</span>';
+ }
  var swLayer=null;
  function buildSwLayer(){
    if(swLayer)return swLayer;
@@ -1087,34 +1316,173 @@ _JS = r"""
    IDX.corridors.forEach(function(c){
      if(c.g)return; var ll=llOf(c);
      (c.mg||[]).forEach(function(line,ci){
-       var flags=(c.sw&&c.sw[ci])||[],pts=ll[ci],i=0;
-       while(i<flags.length){var v=flags[i],j=i;while(j<flags.length&&flags[j]===v)j++;   // merge same-status runs
-         L.polyline(pts.slice(i,j+1),{pane:'swPane',color:v?SW_PRESENT:SW_NONE,weight:3,opacity:.8,interactive:false}).addTo(swLayer);
+       var flags=(c.sw&&c.sw[ci])||[],wids=(c.sww&&c.sww[ci])||[],pts=ll[ci],i=0;
+       while(i<flags.length){
+         var v=flags[i],w=wids[i]||0,j=i;
+         while(j<flags.length&&flags[j]===v&&(wids[j]||0)===w)j++;   // merge same-status, same-width runs
+         L.polyline(pts.slice(i,j+1),{color:v?SW_PRESENT:SW_NONE,weight:3,opacity:.8})
+           .bindPopup(swPopup(c.disp,v,w)).addTo(swLayer);
          i=j;}
      });
    });
    return swLayer;
  }
- (function addSwToggle(){
-   var body=document.querySelector('.leaflet-control.panel .panel-body');
-   if(!body)return;   // panel not present -> skip quietly (no interference)
-   function ln(col){return '<span class="line" style="background:'+col+'"></span>';}
-   var wrap=document.createElement('div');
-   wrap.innerHTML='<hr><label><input type="checkbox" id="swToggle"> Sidewalk (city inventory)</label>'+
-     '<div id="swLegend" style="display:none;font-size:12px;line-height:1.75;color:#33444c;margin-top:2px">'+
-       '<div>'+ln(SW_PRESENT)+'Sidewalk in city inventory</div>'+
-       '<div>'+ln(SW_NONE)+'None found in city inventory</div></div>';
-   body.appendChild(wrap);
-   var cb=document.getElementById('swToggle'),leg=document.getElementById('swLegend');
-   cb.addEventListener('change',function(){
-     if(cb.checked){buildSwLayer().addTo(map);leg.style.display='block';}
-     else{if(swLayer)map.removeLayer(swLayer);leg.style.display='none';}
+ // Register the sidewalk layer as the "Sidewalks" lens in the StreetStat shell (script 18 owns
+ // the one-lens-at-a-time control + legend). Fallback for an older template without the shell:
+ // no-op (the layer is still reachable through the Investigate microscope).
+ if(window.__registerLens){window.__registerLens('sidewalk',buildSwLayer);}
+
+ // ======================= INVESTIGATE — the location microscope (StreetStat) =======================
+ // A dedicated view built on the SAME pipeline as Explore's compact card (snapBest + netCount), so
+ // both render identical numbers for the same point. This is the ONE view where layers combine
+ // (ownership + sidewalk status + window bars + intersection marker) — it works because it is
+ // scoped to a single location at street-level zoom. Reached by address/coordinates input only.
+ function nearestNode(lat,lon){
+   var ni=null,nd=1e9;
+   INTERS.forEach(function(n){var d=distM(lat,lon,n.lat,n.lon);if(d<nd){nd=d;ni=n;}});
+   return {n:ni,d:nd};
+ }
+ // whole-road time table, always expanded (same window math as statsTable -> identical numbers)
+ function invTimeTable(c){
+   var xd=c.xd||[],xf=c.xf||[];
+   var dmax=IDX.meta.dmax,dmin=IDX.meta.dmin;
+   function cut(m){var d=new Date(dmax+'T00:00:00');d.setMonth(d.getMonth()-m);return d;}
+   var W=[['Since data start',null],['Last 12 months',12],['Last 6 months',6],['Last 3 months',3],['Last 1 month',1]];
+   var body=W.map(function(w){
+     var inc=0,dth=0,co=(w[1]==null?null:cut(w[1]));
+     for(var i=0;i<xd.length;i++){
+       var ok=(w[1]==null);
+       if(!ok&&xd[i]){ok=(new Date(xd[i]+'T00:00:00'))>=co;}
+       if(ok){inc++;if(xf[i])dth++;}
+     }
+     return '<tr><td>'+w[0]+'</td><td class="n">'+inc+'</td><td class="n">'+dth+'</td></tr>';
+   }).join('');
+   return '<table class="tw"><thead><tr><th>Whole road</th><th class="n">Incidents</th><th class="n">Deaths</th></tr></thead>'+
+     '<tbody>'+body+'</tbody></table>'+
+     '<div class="twnote">Recent windows may undercount — official crash data is finalized with a reporting lag.</div>'+
+     '<div class="twcov">Data coverage: '+fmtMon(dmin)+' – '+fmtMon(dmax)+'</div>';
+ }
+ var invCardEl=document.getElementById('invCard'),invErrEl=document.getElementById('invErr');
+ function invSetErr(msg){if(invErrEl){invErrEl.textContent=msg;invErrEl.style.display='block';}}
+ function invClearErr(){if(invErrEl)invErrEl.style.display='none';}
+ function investigate(lat,lon,label){
+   if(!invCardEl){countA(lat,lon,label);return;}   // shell absent -> fall back to the compact card
+   invClearErr();clear();invLayer.clearLayers();
+   var ranked=snapBest(lat,lon);
+   if(!ranked.length){invCardEl.innerHTML='<div class="inv-card">No road geometry available.</div>';return;}
+   var hit=ranked[0],alt=null,i;
+   for(i=1;i<ranked.length;i++){if(ranked[i].c.raw!==hit.c.raw){alt=ranked[i];break;}}
+   var c=hit.c,res=netCount(c,hit.ci,hit.m),W=COUNTA_WINDOW_M;
+   // --- microscope layers: owner underlay (glow) + sidewalk-status overlay, whole corridor ---
+   var ll=llOf(c);
+   (c.mg||[]).forEach(function(line,ci){
+     var owns=(c.co&&c.co[ci])||[],pts=ll[ci],a=0,b;
+     while(a<owns.length){var oc=owns[a];b=a;while(b<owns.length&&owns[b]===oc)b++;
+       L.polyline(pts.slice(a,b+1),{color:OWNCOL[oc],weight:11,opacity:.30,interactive:false}).addTo(invLayer);a=b;}
+     var flags=(c.sw&&c.sw[ci])||[];a=0;
+     while(a<flags.length){var v=flags[a];b=a;while(b<flags.length&&flags[b]===v)b++;
+       L.polyline(pts.slice(a,b+1),{color:v?SW_PRESENT:SW_NONE,weight:3.5,opacity:.95,interactive:false,
+         dashArray:v?null:'7 5'}).addTo(invLayer);a=b;}
    });
- })();
+   var acc=[];drawFrontier(c,res,hit.ci,hit.m,invLayer,acc);
+   L.marker([lat,lon]).addTo(invLayer);
+   var nn=nearestNode(lat,lon);
+   if(nn.n)L.circleMarker([nn.n.lat,nn.n.lon],{radius:11,color:'#4f46e5',weight:2,opacity:.85,
+     fillColor:'#4f46e5',fillOpacity:.07,interactive:false}).addTo(invLayer);
+   // hard zoom to the ±window stretch (fallback: plain street-level view of the point)
+   try{
+     var bb=L.latLngBounds([[lat,lon]]);acc.forEach(function(p){bb.extend(p);});
+     if(nn.n&&nn.d<=400)bb.extend([nn.n.lat,nn.n.lon]);
+     map.fitBounds(bb.pad(0.3),{maxZoom:17});
+   }catch(e){map.setView([lat,lon],16);}
+   // --- facts card (all deterministic; same fields the CountA facts API exposes) ---
+   var powner=(c.co&&c.co[hit.ci]&&c.co[hit.ci][hit.si]!=null)?c.co[hit.ci][hit.si]:null;
+   var varies=allOwners(c).length>1;
+   var xd=c.xd||[],xf=c.xf||[],tot=xd.length,dth=0;
+   for(i=0;i<xf.length;i++)if(xf[i])dth++;
+   var ncl=Math.max.apply(null,c.cl)+1,clusterLen=0;
+   res.comps.forEach(function(cj){clusterLen+=res.g.len[cj];});
+   var ambiguous=alt&&(alt.d-hit.d)<=15;
+   var ll2=lat.toFixed(5)+', '+lon.toFixed(5);
+   var secNote='';
+   if(ncl>1){
+     secNote='<div class="row" style="color:var(--muted,#71717a)">This point is on a ~'+Math.round(clusterLen)+
+       ' m section of '+c.disp+' — '+
+       (c.rg?('one of '+ncl+' disconnected pieces (separated by real gaps — rail, etc.)')
+            :('one of '+ncl+' sections (small centreline gaps)'))+
+       '; the ±'+W+' m window stays on it.</div>';
+   }
+   var sigTxt=nn.n?(nn.n.sig==='y'?'signalized':(nn.n.sig==='n'?'not signalized':'signal status not yet analyzed')):'';
+   invCardEl.innerHTML='<div class="inv-card"><h3>'+label+'</h3>'+
+     '<div class="inv-coords">'+ll2+' <span style="cursor:pointer;color:var(--accent-ink,#4338ca)" title="copy" '+
+       'onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+ll2+'\')">⧉ copy</span></div>'+
+     row('Road',c.disp+' <span style="color:var(--muted,#71717a)">— snapped '+Math.round(hit.d)+' m from your point</span>')+
+     row('Owner',(powner==null?'unknown':ownerLabel(powner))+
+       (varies?' <span style="color:var(--muted,#71717a)">(ownership varies along the corridor — see the map coloring)</span>':''))+
+     row('Sidewalk (city inventory)',swStatus(swAt(c,hit.ci,hit.si)))+
+     (ambiguous?'<div class="row na">Ambiguous: also '+Math.round(alt.d)+' m from '+alt.c.disp+'; counting '+c.disp+'.</div>':'')+
+     ((!ambiguous&&hit.d>35)?'<div class="row na">Your point is '+Math.round(hit.d)+' m from the nearest road on record — it may not be on '+c.disp+'.</div>':'')+
+     row('Crashes within ±'+W+' m',res.n+' ('+res.fat+' fatal)')+
+     row('Whole road',tot+' incidents · '+dth+' deaths <span style="color:var(--muted,#71717a)">('+IDX.meta.dmin+' → '+IDX.meta.dmax+')</span>')+
+     row('Nearest mapped intersection',nn.n?(nn.n.disp+' <span style="color:var(--muted,#71717a)">— '+Math.round(nn.d)+' m away · '+sigTxt+' · '+
+       (nn.n.crashes>0?(nn.n.crashes+' crashes ('+nn.n.deaths+' fatal)'):'0 incidents reported')+'</span>'):na())+
+     row('Nearest safe crossing',(nn.n&&nn.n.near_safe_ft!=null)?(nn.n.near_safe_ft+' ft (from the nearest mapped intersection)'):na())+
+     secNote+
+     '<div class="row" style="color:var(--muted,#71717a)">The two orange bars on the map mark ±'+W+' m along the road from your point '+
+       '(crashes attributed to this road only, by network distance — not a straight-line radius). '+
+       'Corridor coloring: outer glow = road owner; inner line = sidewalk status (solid blue = in city inventory, '+
+       'dashed amber = none found; absence may reflect incomplete records). The thin ring marks the nearest mapped intersection.</div>'+
+     invTimeTable(c)+DISCLAIMER+'</div>';
+ }
+ // Investigate input wiring (address / coordinates segmented control + Enter + button)
+ var invMode='address',iA=document.getElementById('invSegAddr'),iC=document.getElementById('invSegCoord'),
+     iIn=document.getElementById('invInput'),iGo=document.getElementById('invGo');
+ function invApplyMode(){
+   if(!iA)return;
+   iA.className=(invMode==='address')?'on':'';
+   iC.className=(invMode==='address')?'':'on';
+   iIn.placeholder=(invMode==='address')?'e.g. 1779 Union Ave':'e.g. 35.137, -90.017';
+ }
+ function invRun(){
+   if(!iIn)return;
+   var q=iIn.value.trim();
+   invClearErr();
+   if(!q){invSetErr('Enter a location.');return;}
+   if(invMode==='coord'){
+     var mt=q.match(/(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)/);
+     if(!mt){invSetErr('Type "lat, lon" — e.g. 35.137, -90.017');return;}
+     var lat=parseFloat(mt[1]),lon=parseFloat(mt[2]);
+     if(!inMemphis(lat,lon)){invSetErr(lat+', '+lon+' is outside the Memphis area — expected lat 34.94–35.42, lon -90.40 to -89.55.');return;}
+     investigate(lat,lon,'Coordinates '+lat.toFixed(5)+', '+lon.toFixed(5));
+     return;
+   }
+   iGo.disabled=true;iGo.textContent='Locating…';
+   fetch('/api/geocode?address='+encodeURIComponent(q)).then(function(r){return r.json();}).then(function(j){
+     iGo.disabled=false;iGo.textContent='Look up';
+     if(!j||typeof j.lat!=='number'){throw 0;}
+     investigate(j.lat,j.lon,j.matchedAddress||q);
+   }).catch(function(){
+     iGo.disabled=false;iGo.textContent='Look up';
+     invSetErr('Couldn’t find that address. Address lookup needs the deployed geocoder (/api/geocode) — on a local file, use Coordinates mode instead.');
+   });
+ }
+ if(iA){
+   iA.onclick=function(){invMode='address';invApplyMode();iIn.focus();};
+   iC.onclick=function(){invMode='coord';invApplyMode();iIn.focus();};
+   iGo.onclick=invRun;
+   iIn.addEventListener('keydown',function(e){if(e.key==='Enter')invRun();});
+   invApplyMode();
+ }
+ // keep each view's overlays scoped: microscope layers only in Investigate; search highlights only elsewhere
+ window.__onRoute=function(v){
+   if(v==='investigate'){clear();}
+   else{invLayer.clearLayers();}
+ };
+ window.__investigate=investigate;   // exposed for the shell / tests
 
  // ---- Deterministic fact API (reused by the "Report a New Incident" demo tab). Gathers the SAME
- // facts a map click computes -- snap, owner, +/-window count, time windows, nearest intersection,
- // nearest safe crossing -- as a plain object. Code-only; no phrasing, no judgment. ----
+ // facts a Count-A lookup computes -- snap, owner, +/-window count, time windows, nearest
+ // intersection, nearest safe crossing -- as a plain object. Code-only; no phrasing, no judgment. ----
  function statsWindows(c){
    var xd=c.xd||[],xf=c.xf||[],total=xd.length,deaths=0,i;
    for(i=0;i<xf.length;i++)if(xf[i])deaths++;
