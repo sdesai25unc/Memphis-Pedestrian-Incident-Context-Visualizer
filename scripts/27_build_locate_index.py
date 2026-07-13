@@ -188,8 +188,9 @@ def main():
     ep = alias.get("us 51", [])
     print(f"  [check] alias 'us 51' -> {ep[:4]}{' ...' if len(ep) > 4 else ''}")
     tot = sum(s[8] for s in streets)
-    print(f"  [check] sum of street crash counts = {tot} (expect 1294 minus generic-name "
-          f"crashes; generic excluded = {1294 - tot})")
+    n_all = len(pd.read_csv(FINAL))
+    print(f"  [check] sum of street crash counts = {tot} (= in-Memphis total {n_all} minus "
+          f"{n_all - tot} crashes on excluded generic names)")
 
 
 if __name__ == "__main__":

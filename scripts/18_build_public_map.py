@@ -720,9 +720,13 @@ def main():
           f"City {s['c_f_lo']}-{s['c_f_pct']}% / TDOT {s['t_f_pct']}-{s['t_f_hi']}% (fatal).")
     surf_recon = s['s_tot'] + s['lim_n']
     fat_recon = s['sf_tot'] + s['lim_f']
+    # Internal-consistency gate: surface + limited-access must partition the in-Memphis total.
+    # Compared against the CURRENT data (never a hardcoded anchor — anchors legitimately move
+    # when the state's rolling window advances; update CLAUDE.md's anchors after a refresh).
     print(f"\nRECONCILIATION: surface {s['s_tot']} + limited {s['lim_n']} = {surf_recon} "
-          f"{'OK' if surf_recon == 1294 else 'FAIL'} (=1294); "
-          f"fatal {s['sf_tot']} + {s['lim_f']} = {fat_recon} {'OK' if fat_recon == 175 else 'FAIL'} (=175)")
+          f"{'OK' if surf_recon == s['N'] else 'FAIL'} (= in-Memphis total {s['N']:,}); "
+          f"fatal {s['sf_tot']} + {s['lim_f']} = {fat_recon} "
+          f"{'OK' if fat_recon == s['NF'] else 'FAIL'} (= {s['NF']})")
 
     if s.get("lane_mi"):
         lm = s["lane_mi"]
