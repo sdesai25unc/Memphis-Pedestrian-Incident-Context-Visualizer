@@ -1480,9 +1480,9 @@ _JS = r"""
  };
  window.__investigate=investigate;   // exposed for the shell / tests
 
- // ---- Deterministic fact API (reused by the "Report a New Incident" demo tab). Gathers the SAME
- // facts a Count-A lookup computes -- snap, owner, +/-window count, time windows, nearest
- // intersection, nearest safe crossing -- as a plain object. Code-only; no phrasing, no judgment. ----
+ // ---- Deterministic fact API. Gathers the SAME facts a Count-A lookup computes -- snap, owner,
+ // +/-window count, time windows, nearest intersection, nearest safe crossing -- as a plain
+ // object. The Investigate view and the test harnesses build on it. Code-only; no judgment. ----
  function statsWindows(c){
    var xd=c.xd||[],xf=c.xf||[],total=xd.length,deaths=0,i;
    for(i=0;i<xf.length;i++)if(xf[i])deaths++;
@@ -1516,7 +1516,7 @@ _JS = r"""
      nearest_safe_crossing_ft:(atInt&&ni.near_safe_ft!=null)?ni.near_safe_ft:null
    };
  }
- window.CountA={facts:gatherFacts};   // demo-tab entry point (deterministic; no AI here)
+ window.CountA={facts:gatherFacts};   // deterministic facts API (Investigate + tests build on it)
 })();
 """
 

@@ -1,5 +1,5 @@
 // locate_dev_server.js — run the REAL api/locate.js Vercel handler locally for testing.
-// (Same role scripts/incident_demo_server.py plays for the AI demo.)
+// (scripts/dev_server.py proxies /api/locate here, so one localhost origin serves everything.)
 //   node scripts\locate_dev_server.js  [port]     (default 8130)
 // The regression harness proxies /api/locate here so tests exercise the production code path.
 
