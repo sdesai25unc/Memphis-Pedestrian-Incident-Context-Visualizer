@@ -414,13 +414,20 @@ def append_docx(ref_mi, n_safe, n_sig, n_mk, n_crash, n_fatal, n_rel, dmean, dme
         print("  (python-docx not available; skipping docx append)")
         return
     doc = Document(DOCX) if DOCX.exists() else Document()
-    # idempotent: drop any prior Union POC section (its heading to the end of the doc) before re-appending
+    # idempotent: drop any prior Union POC section before re-appending — but ONLY up to the
+    # next Heading 1. (The old truncate-to-end-of-document behavior silently deleted every
+    # section appended after this one, e.g. the 2026-07-12 signal-split correction.)
     start = None
     for i, p in enumerate(doc.paragraphs):
         if p.text.strip().startswith("Union Ave —"):
             start = i; break
     if start is not None:
-        for p in doc.paragraphs[start:]:
+        end = None
+        for j in range(start + 1, len(doc.paragraphs)):
+            if doc.paragraphs[j].style.name.startswith("Heading 1"):
+                end = j; break
+        victims = doc.paragraphs[start:end] if end is not None else doc.paragraphs[start:]
+        for p in victims:
             p._element.getparent().remove(p._element)
     doc.add_heading("Union Ave — Distance-to-Crossing Proof of Concept (added 2026-06-17)", level=1)
     for line in [
