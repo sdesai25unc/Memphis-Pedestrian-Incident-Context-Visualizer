@@ -26,8 +26,8 @@ Design goals (unchanged underneath):
     (City of Memphis / TDOT state route / Limited-access), fatal emphasized;
   - simple user-facing popups (date, severity, location, road-owner).
 
-Every number is computed from the data files (nothing hardcoded). Reconciles to
-1,294 crashes / 175 fatal.
+Every number is computed from the data files (nothing hardcoded) and reconciles
+against the current totals at build time (sanity anchors live in CLAUDE.md).
 
 Inputs (Pass 1):
   data/processed/shelby_crashes_final.csv
@@ -759,6 +759,7 @@ _TEMPLATE = r"""<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>StreetStat — pedestrian crash &amp; infrastructure context for Memphis</title>
 <meta name="description" content="StreetStat puts every recorded Memphis pedestrian crash in its infrastructure context: road design, ownership (City vs TDOT), sidewalks, and crossings — computed from public data.">
+<link rel="canonical" href="https://streetstat.org/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2318181b'/%3E%3Ccircle cx='11' cy='21' r='4' fill='%231b9e8f'/%3E%3Ccircle cx='21' cy='11' r='4' fill='%23d6453d'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -1055,8 +1056,8 @@ _TEMPLATE = r"""<!DOCTYPE html>
       </div>
       <div id="invErr"></div>
       <div id="invCard"></div>
-      <div class="invnote">AI-assisted drafting: in development (beta) &mdash; not part of this release.
-        Everything shown here is computed directly from the data.</div>
+      <div class="invnote">Everything shown here is computed directly from the data &mdash;
+        see the <a href="#/methodology">Methodology page</a> for how.</div>
     </aside>
     <div class="mapslot" id="mapSlotInv"></div>
   </div>

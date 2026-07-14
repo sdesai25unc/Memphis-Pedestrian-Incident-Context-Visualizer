@@ -260,7 +260,7 @@ def main():
     disp[["Ownership", "Street_Name", "MTFCC", "Rule_Fired", "geometry"]].to_crs(CRS_GEO).to_file(
         DISPLAY_GEOJSON, driver="GeoJSON")
 
-    print("PART B: classifying the 1,294 in-Memphis crashes...")
+    print("PART B: classifying the in-Memphis crashes...")
     crashes = pd.read_csv(NAMED_SEG)
     prev_seg = crashes["Jurisdiction"].copy()      # seg-method label (script 14) = audit trail
     crashes = crashes.drop(columns=[c for c in ["Jurisdiction", "Jurisdiction_prev",

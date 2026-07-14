@@ -4,7 +4,7 @@
 
 ![The interactive crash map, with crashes colored by road owner and a findings dashboard](docs/hero.png)
 
-> 🔗 **Live demo: [memphis-pedestrian-incident-context.vercel.app](https://memphis-pedestrian-incident-context.vercel.app/)** — explore the map, search any street / intersection / address, or look up any location (address / coordinates) in the Investigate tab for a road-attributed crash report. (Also runs locally in ~2 min → [**Run it locally**](#-run-it-locally).)
+> 🔗 **Live site: [streetstat.org](https://streetstat.org/)** — explore the map, search any street / intersection / address, or look up any location (address / coordinates) in the Investigate tab for a road-attributed crash report. (Also runs locally in ~2 min → [**Run it locally**](#-run-it-locally).)
 
 ---
 
@@ -14,12 +14,12 @@ Memphis has one of the worst pedestrian fatality rates in the United States, and
 
 ## Key findings
 
-*All figures are computed from the data and reconcile to fixed totals — 1,294 pedestrian/non-motorist crashes inside Memphis, 175 fatal (2023-01-01 → 2026-05-26).*
+*All figures are computed from the data and reconcile to fixed totals — 1,337 pedestrian/non-motorist crashes inside Memphis, 179 fatal (2023-01-01 → 2026-07-11; the window advances as the data refreshes — the live site's "data current through" label is authoritative).*
 
 - **~75–80% of crashes (and ~69–72% of deaths) are on City-of-Memphis roads; ~20–25% of crashes (28–31% of deaths) on TDOT state routes.** State arterials are over-represented in *deaths* relative to their crash share — i.e. deadlier per crash. Interstates and other limited-access roads add **35 more crashes (14 fatal)**, reported separately.
-- **76.6% of pedestrian deaths happen after dark**; 14.3% on dark, *unlit* roads.
-- The design signature: **62.9% of deaths are on roads with 4+ lanes** and **60.0% on roads posted ≥40 mph.** Just under half (49.7%) are on roads that are *both* — wide *and* fast.
-- Deaths concentrate on a handful of corridors: **Poplar (44 crashes / 8 fatal), Union (36 / 8), Lamar (30 / 6), Winchester (28 / 5)** lead the ranking of 529 streets.
+- **76.5% of pedestrian deaths happen after dark**; 14.0% on dark, *unlit* roads.
+- The design signature: **63.1% of deaths are on roads with 4+ lanes** and **60.3% on roads posted ≥40 mph.** Just over half (50.3%) are on roads that are *both* — wide *and* fast (for exposure context, 4+ lane roads are only ~11% of surface-street mileage).
+- Deaths concentrate on a handful of corridors: **Poplar (46 crashes / 9 fatal), Union (37 / 8), Lamar (33 / 7), Winchester (28 / 5)** lead the ranking of 545 streets.
 - **Proof of concept on Union Ave (preliminary):** ~**1 in 5** crossing-related crashes happened **more than 250 ft from the nearest safe crossing**, and one **2,921 ft stretch (~9.7× the FHWA ~300 ft best-practice spacing)** has no crossing at all. *These crossing-distance figures are Union-only and provisional pending imagery ground-truthing of the OSM crosswalk layer.*
 
 > The rigor is the point: every number is recomputed from raw data, reconciled to the fixed totals, and stated **descriptively** — the project never claims a road "causes" a death or that one road is "N× deadlier."
@@ -59,11 +59,11 @@ This is the real differentiator. Sources and provenance:
 
 | Layer | Source (exact origin) |
 |---|---|
-| Pedestrian/non-motorist crashes | Tennessee **SAFETY MapServer** (TDOT), Layer 8 — `https://tnmap.tn.gov/arcgis/rest/services/SAFETY/MapForDashboards/MapServer/8/query` (public, no key). Query scope: `County='Shelby' AND PersonType<>'Pedalcyclists'` — pedestrians + other non-motorists in Shelby County; pedalcyclists excluded by design. Coverage window in the current build: **Jan 1, 2023 – May 26, 2026** (the state's rolling ~3-year file; advances on refresh). Full endpoint reference: `outputs/data_source.md` |
+| Pedestrian/non-motorist crashes | Tennessee **SAFETY MapServer** (TDOT), Layer 8 — `https://tnmap.tn.gov/arcgis/rest/services/SAFETY/MapForDashboards/MapServer/8/query` (public, no key). Query scope: `County='Shelby' AND PersonType<>'Pedalcyclists'` — pedestrians + other non-motorists in Shelby County; pedalcyclists excluded by design. Coverage window at this writing: **Jan 1, 2023 – Jul 11, 2026** (the state's rolling ~3-year file; advances on every refresh — the site's "data current through" label is authoritative). Full endpoint reference: `outputs/data_source.md` |
 | State routes, city boundary, street centerlines | **City of Memphis Public Works GIS** — ArcGIS REST services (state-route, city-boundary, and street-centerline layers, retrieved by `scripts/02_download_roads.py` and `scripts/05_download_streets.py`); the road-ownership rulebook is derived from these by `scripts/17_classifier.py` |
 | Pedestrian signals | **TDOT "ADA Asset Data"** FeatureServer — geodata.tn.gov Hub item `69511fa73a584e2bb37acfa85b177fa5`, layer 1 (Pedestrian Signal), Shelby County extract (`scripts/19_acquire_ped_signals.py`) |
 | Crosswalks | **OpenStreetMap** via Overpass — © OpenStreetMap contributors, [ODbL](https://opendatacommons.org/licenses/odbl/). Used for the **Union Ave corridor analysis only** so far (citywide use pending imagery ground-truthing) |
-| Sidewalks | **City of Memphis (Engineering)** sidewalk inventory — received June 2026 as a file-geodatabase export (`Memphis_Sidewalks_V2`; zip dated April 2026, internal timestamps January 2025). **Survey vintage unknown**; redistribution permission pending |
+| Sidewalks | **City of Memphis (Engineering)** sidewalk inventory — received June 2026 as a file-geodatabase export (`Memphis_Sidewalks_V2`; zip dated April 2026, internal timestamps January 2025). **Survey vintage unknown.** Redistribution permission granted (recorded July 2026); the reprojected working file is committed in `data/processed/` |
 | Address geocoding | **US Census Bureau** onelineaddress geocoder (proxied by `api/geocode.js`; public, no key) |
 
 Credibility principles baked into the pipeline:
@@ -129,33 +129,35 @@ py -m venv .venv
 
 ## 🚦 Status & roadmap
 
-- **Done:** jurisdiction classifier · interactive map + findings dashboard · corridor/intersection search · road-attributed point lookup (address / coordinates, in the Investigate tab) · signalized-crossing analysis · Union Ave distance-to-crossing proof of concept (preliminary) · **City-of-Memphis sidewalk-presence layer** · **AI-assisted "Report a New Incident" tool (beta, local demo only — not deployed)**.
+- **Done:** jurisdiction classifier · interactive map + findings dashboard · corridor/intersection search · road-attributed point lookup (address / coordinates, in the Investigate tab) · signalized-crossing analysis · Union Ave distance-to-crossing proof of concept (preliminary) · **City-of-Memphis sidewalk-presence layer**.
 - **In progress:** Vercel deployment (a live URL).
 - **Next:** live auto-refresh from the crash API · extend the crossing-distance analysis citywide (after OSM ground-truthing).
 
-### "Report a New Incident" tool + environment variables (Vercel)
+### Serverless functions (Vercel)
 
-A journalist enters a location; the **code** gathers verified facts (road, owner, ±300 m crash counts, time windows, nearest crossing, sidewalk presence) and an **AI layer only phrases/frames them** — it never invents or judges data (facts render instantly and independently of the AI). Two serverless functions power it:
+Two small functions supplement the static page; **neither needs any secret or environment variable**:
 
 | Function | Purpose | Secrets |
 |---|---|---|
-| `api/geocode.js` | US Census address → coordinates | none |
-| `api/incident-context.js` | OpenAI phrasing/framing over the facts | reads env vars (below) |
+| `api/geocode.js` | US Census address → coordinates (Census sends no CORS header, so the browser can't call it directly) | none |
+| `api/locate.js` | full-network street / intersection search over a preprocessed ~2.9 MB lookup | none |
 
-Set these in **Vercel → Project → Settings → Environment Variables** (never in the repo):
+For local development, `scripts/dev_server.py` serves the built page plus a local `/api/geocode`
+(and proxies `/api/locate` to `node scripts/locate_dev_server.js` when that's running), so address
+search works on localhost exactly as deployed.
 
-- **`OPENAI_API_KEY`** *(required to enable the AI)* — until it's set the endpoint returns 503 and the page shows *"AI summary unavailable"* (no spend). Locally, dev uses a gitignored `openai_key.txt` instead.
-- **`OPENAI_MODEL`** *(optional)* — the model string (default in code); change here without redeploying.
-- **`INCIDENT_ACCESS_CODE`** *(optional but recommended for a public URL)* — if set, callers must supply this code, so a public page can't spend your OpenAI credits. Also set a **hard spending limit** on the OpenAI key.
+> An AI drafting layer ("Report a New Incident") was prototyped during development and **removed
+> before launch** — the code remains retrievable from git history. Any future AI feature must use
+> its own API key and must never commit credentials.
 
 ---
 
 ## Data sources, attribution & license
 
-- **Crashes:** Tennessee SAFETY MapServer (TDOT), layer 8 (`tnmap.tn.gov/.../SAFETY/MapForDashboards/MapServer/8`) — public, no login; Shelby County pedestrian/non-motorist scope; coverage window Jan 1, 2023 – May 26, 2026 in the current build.
+- **Crashes:** Tennessee SAFETY MapServer (TDOT), layer 8 (`tnmap.tn.gov/.../SAFETY/MapForDashboards/MapServer/8`) — public, no login; Shelby County pedestrian/non-motorist scope; rolling window (Jan 1, 2023 – Jul 11, 2026 at this writing — the site's "data current through" label is authoritative).
 - **Roads / boundary / streets:** City of Memphis Public Works GIS (ArcGIS REST).
 - **Pedestrian signals:** TDOT "ADA Asset Data" (geodata.tn.gov Hub item `69511fa73a584e2bb37acfa85b177fa5`, layer 1).
-- **Sidewalks:** City of Memphis (Engineering) sidewalk inventory — received June 2026; survey vintage unknown; redistribution permission pending.
+- **Sidewalks:** City of Memphis (Engineering) sidewalk inventory — received June 2026; survey vintage unknown; redistribution permission granted (July 2026).
 - **Crosswalks:** © OpenStreetMap contributors, [ODbL](https://opendatacommons.org/licenses/odbl/) — Union Ave corridor analysis only.
 - **Geocoding:** US Census Bureau geocoder.
 - Developed in support of pedestrian-safety advocacy with **Street Fair Memphis** and **Innovate Memphis**.
@@ -163,7 +165,7 @@ Set these in **Vercel → Project → Settings → Environment Variables** (neve
 > **Data provenance.** All statistics on StreetStat are computed by its own open-source pipeline from
 > public data sources. They are not official figures published by TDOT or the City of Memphis and may
 > differ from official counts due to methodology. Exact attribution and counting methods are documented
-> on the [Methodology page](https://memphis-pedestrian-incident-context.vercel.app/#/methodology).
+> on the [Methodology page](https://streetstat.org/#/methodology).
 
 - **License:** [MIT](LICENSE) for the code. Source data remains under its respective providers' terms.
 
@@ -179,7 +181,12 @@ Built by **Samarth Desai**.
 
 ---
 
-## 🎨 StreetStat UI/UX redesign (2026-07-11 — built locally, NOT yet committed)
+## 🎨 Changelog
+
+*(Historical notes — figures cited in each dated entry below reflect that date's data window, not the
+current totals; the live site is always authoritative.)*
+
+### StreetStat UI/UX redesign (2026-07-11)
 
 The public page was rebranded **StreetStat** and restructured into a four-view product, with the
 underlying data, methodology, and every computed number **unchanged** (regression-verified: 1,294 / 175;
@@ -212,8 +219,8 @@ byte-identical at the verification anchors). Presentation-layer work only, in th
   sidewalk layer registers as the Explore *Sidewalks* lens; adds the Investigate wiring; and fixes a
   pre-existing bug where clicking the "Search address:" dropdown row threw a swallowed TypeError
   (`pick()` now routes address rows to `openAddress` directly).
-- **Not in this build:** the AI "Report a New Incident" tab (script 26 is untouched but not injected;
-  the public page carries only an honest "AI-assisted drafting: in development (beta)" note).
+- **Not in this build:** the AI "Report a New Incident" prototype (never injected into the public
+  page, and later removed from the project entirely on 2026-07-13 — retrievable from git history).
   `api/geocode.js` is unchanged and still powers address search when deployed.
 
 Build order is unchanged (`18` → `24`); `data/processed/search_index.json` re-emits byte-identical.

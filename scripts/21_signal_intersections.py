@@ -114,7 +114,7 @@ def append_docx(D):
 
     doc.add_heading("Scoped intersection findings (covered corridors only)", 2)
     for b in [
-        f"Intersection crashes (field): {D['n_intx']} of 1,294 ({D['n_intx_f']} fatal). "
+        f"Intersection crashes (field): {D['n_intx']} of the in-Memphis crashes ({D['n_intx_f']} fatal). "
         f"Ambiguous: {D['amb']} — (A) {D['ambA']} labeled mid-block but at a covered junction, "
         f"(B) {D['ambB']} labeled intersection but not geometrically corroborated, of which "
         f"{D['offroad']} are geocoded >20 m off any road (crash-geolocation imprecision).",

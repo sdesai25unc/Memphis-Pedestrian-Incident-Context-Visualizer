@@ -159,7 +159,7 @@ TITLE_HTML = f"""<!DOCTYPE html><html><head><meta charset="utf-8"><style>{TITLE_
     <div class="meta">
       <b>Prepared by</b> Samarth Desai<br>
       <b>Date</b> {TITLE_DATE}<br>
-      <b>Live site</b> memphis-pedestrian-incident-context.vercel.app
+      <b>Live site</b> streetstat.org
     </div>
   </div>
   <div class="foot">Pedestrian crash &amp; infrastructure context for Memphis — data, methodology,

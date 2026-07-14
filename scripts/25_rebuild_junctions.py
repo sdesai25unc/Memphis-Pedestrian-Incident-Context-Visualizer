@@ -29,8 +29,8 @@ This script rebuilds the FULL junction set from TRUE geometric line intersection
   5. SIGNALIZED: a node is signalized if a deduped crossing is within 30 m.
   6. RE-ATTRIBUTE crashes to the nearest node within 30 m (ANY node, not just covered),
      recompute at_intersection / intersection_node_id / intersection_signalized, and
-     PROVE the headline totals (1,294 / 175) and the deadliest-corridor counts are
-     unchanged. A pre-fix snapshot is kept so the status delta is reproducible.
+     PROVE the headline totals (current anchors, see CLAUDE.md) and the deadliest-corridor
+     counts are unchanged. A pre-fix snapshot is kept so the status delta is reproducible.
 
 Reads:  data/processed/road_ownership_rulebook.geojson
         data/raw/ped_signals.geojson

@@ -29,10 +29,10 @@ search, location reports, methodology) plus the reproducible Python pipeline tha
 | **Methodology** (`#/methodology`) | Plain-language source → rule → limitations documentation of every pipeline stage |
 
 The page is **self-contained** (crash data and search index embedded, ~5.3 MB) so corridor and
-intersection search work even from a local file. Two Vercel serverless functions supplement it:
-`api/geocode.js` (address → coordinates via the US Census geocoder; needed because Census sends no
-CORS header) and `api/incident-context.js` (the AI drafting layer — **not enabled in the public
-build**; see Open Items).
+intersection search work even from a local file. Two Vercel serverless functions supplement it,
+neither needing any secret: `api/geocode.js` (address → coordinates via the US Census geocoder;
+needed because Census sends no CORS header) and `api/locate.js` (full-network street search —
+see the Addendum).
 
 ### Which script generates what, and the build order
 
@@ -57,8 +57,7 @@ reading each script's declared inputs/outputs):
 | 14 | `24_build_search.py` | `search_index.json` + injects search, Count-A, and the Investigate wiring **into** `index.html` |
 
 Scripts `04`, `07`–`12`, `15`, `16` are one-off statistics/audit steps or superseded prototypes —
-not needed for a rebuild. `26_build_incident_demo.py` injects the AI demo tab **locally only** and
-is deliberately not part of the public build.
+not needed for a rebuild.
 
 **Routine rebuild** (data refresh, no methodology change): `01 → 03 → 06 → 14 → 17 → 21 → 23 → 18
 → 25 → 27 → 24` (27 rebuilds the full-network search data so new streets/counts are searchable).
@@ -78,29 +77,30 @@ then open `http://localhost:8000/index.html`. (Address search needs the deployed
 |---|---|---|---|
 | **Crashes** | TDOT SAFETY MapServer, layer 8 (`tnmap.tn.gov/arcgis/rest/services/SAFETY/MapForDashboards/MapServer/8/query`) — public, no key. Full reference: `outputs/data_source.md` | Re-run `scripts/01_download_crashes.py` (it re-downloads when the upstream count changes), then the routine rebuild chain | One row per **person**, deduped to crashes; pedalcyclists excluded by design. **Rolling ~3-year window** — old records fall out as new ones arrive. **Freshness measured:** newest upstream record was 1 day old when probed 2026-07-12 (typically ~1–3 days), but recency ≠ completeness — police reports are finalized with a lag, so the last several weeks always undercount. **Upstream records can also be REMOVED outside the rolling window** (observed in the first live refresh, 2026-07-13: one fatal record deleted at the source between the May and July pulls — not renumbered, not reclassified). Deletions are invisible to date-floor incremental pulls; only a full pull catches them. |
 | **Roads / boundary / street network** | City of Memphis Public Works GIS (ArcGIS REST) | `02` (routes/boundary), `05` (street network) | Network is the city's centerline file; `LANES`/`SPDLIMIT` attributes are the city's, taken as-is |
-| **Sidewalk inventory** | City of Memphis (Engineering) — received June 2026 as `Memphis_Sidewalks_DMC (1).zip` → a `Memphis_Sidewalks_V2` file-geodatabase (zip dated April 2026); 46,875 lines with `STREET_NAME` and `WIDTH` | No refresh endpoint — a new delivery would come from the city. To regenerate the working file: read the GDB layer with geopandas and write `data/processed/memphis_sidewalks_32136.geojson` in EPSG:32136 *(this conversion was a one-off manual step; there is no numbered script for it)* | **Vintage unknown** — the GDB carries no collection-date metadata (internal file timestamps are Jan 2025, which reflects export, not survey date). **Redistribution permission is pending** — do not republish the raw layer until the city confirms. This is why the site only ever says "in city inventory" / "none found in city inventory (absence may reflect incomplete records)" — never a flat "no sidewalk." |
+| **Sidewalk inventory** | City of Memphis (Engineering) — received June 2026 as `Memphis_Sidewalks_DMC (1).zip` → a `Memphis_Sidewalks_V2` file-geodatabase (zip dated April 2026); 46,875 lines with `STREET_NAME` and `WIDTH`. **Redistribution permission granted and recorded July 2026** — the reprojected working file is now committed at `data/processed/memphis_sidewalks_32136.geojson` (the source zip stays out of the repo) | No refresh endpoint — a new delivery would come from the city. To regenerate the working file: read the GDB layer with geopandas and write `data/processed/memphis_sidewalks_32136.geojson` in EPSG:32136 *(this conversion was a one-off manual step; there is no numbered script for it)* | **Vintage unknown** — the GDB carries no collection-date metadata (internal file timestamps are Jan 2025, which reflects export, not survey date); this caveat stands regardless of permission status. This is why the site only ever says "in city inventory" / "none found in city inventory (absence may reflect incomplete records)" — never a flat "no sidewalk." |
 | **Pedestrian signals** | TDOT "ADA Asset Data" FeatureServer (geodata.tn.gov Hub item `69511fa73a584e2bb37acfa85b177fa5`, layer 1) | Re-run `19 → 20 → 21`, then `25 → 24` | An asset inventory: it records where TDOT has inventoried signals, mostly along state routes. Off covered corridors the site says "not yet analyzed" — absence of inventory is not "no signal" |
 | **OSM crosswalks** | OpenStreetMap via Overpass (ODbL) — `22` acquires and evaluates | Re-run `22`, review the report, then `23` | **Union Avenue only** so far. OSM completeness varies block to block; `outputs/osm_crossings_eval.md` recommends an imagery spot-check before extending citywide. ODbL attribution required |
 | **Geocoding** | US Census Bureau geocoder via `api/geocode.js` | none needed | Free, no key; occasionally misses newer addresses |
 
 ## 4. Known open items (honest and complete)
 
-1. **AI drafting layer is local-only.** The "Report a New Incident" tool (script `26` +
-   `scripts/incident_demo_server.py` + `api/incident-context.js`) exists and works, but it is
-   **not injected into the public build**. Why: it spends OpenAI credits per use (needs
-   `OPENAI_API_KEY`, ideally `INCIDENT_ACCESS_CODE` and a hard spending limit before any public
-   exposure), and the team chose to launch with the deterministic facts only. The public page
-   carries an honest "AI-assisted drafting: in development (beta)" note. The deterministic facts
-   API it relies on (`window.CountA.facts`) ships and is tested.
+1. **AI drafting layer: removed.** An AI drafting layer ("Report a New Incident") was prototyped
+   during development and **removed before launch**; the code remains retrievable from git
+   history (removed 2026-07-13). If IM ever builds an AI feature, it must use IM's own API key
+   and never commit credentials. The deterministic facts API the prototype was built on
+   (`window.CountA.facts`) is a live, tested part of the product — the Investigate view runs
+   on it.
 2. **Safe-crossing / longest-gap statistics are preliminary.** The Union Ave numbers (24 safe
    crossings, 22% of crossing-relevant crashes >250 ft, 2,921 ft longest gap) are a **proof of
    concept on one corridor**, pending imagery ground-truthing of the OSM crosswalk layer
    (`outputs/osm_crossings_eval.md` describes the recommended check). They are labeled
    "preliminary" in the README, the Union report, and on the site's Union card. Do not extend
    citywide before ground-truthing.
-3. **Live-update pipeline: designed, NOT built.** See §5. Today the site updates only when someone
-   re-runs the pipeline and redeploys.
-4. **Sidewalk data vintage unknown; redistribution permission pending.** See §3.
+3. **Live-update pipeline: built; the daily schedule activates by uncommenting the `cron` block**
+   in `.github/workflows/data-refresh.yml` (manual `workflow_dispatch` runs are available now).
+   No secrets or setup required — see §5.
+4. **Sidewalk data vintage unknown.** (Redistribution permission was granted and recorded July
+   2026 — that half of the item is closed; the unknown survey vintage remains.) See §3.
 5. **Name collision:** "streetStat" is also the name of a Massachusetts pharmaceutical consultancy
    (streetStat LLC). Known and accepted by the project owner; revisit only if the project seeks
    trademark or wide distribution. *(Not verifiable from the repo — recorded from the project
@@ -112,14 +112,50 @@ then open `http://localhost:8000/index.html`. (Address search needs the deployed
 7. **Nothing else is TODO-flagged.** A code sweep found no other TODO/FIXME markers; the only
    "beta" wording is the AI note above.
 
-## 5. Live-update pipeline — the build plan (not yet implemented)
+## 5. Live updates — the automated refresh (GitHub Actions)
+
+Data refreshes are **automated**: a scheduled GitHub Action (`.github/workflows/data-refresh.yml`)
+runs the refresh engine `scripts/28_auto_refresh.py`. The manual procedure further below is
+retained as the fallback and is exactly what the automation executes.
+
+- **What runs when.** Daily at 08:47 UTC (~3:47 AM Memphis): an *incremental* check — a cheap
+  date-floored probe (last snapshot max minus a 30-day overlap); if nothing changed, the job
+  exits without committing. On the **1st of each month** the same workflow runs a *full*
+  unconditional re-pull — required, not optional, because the source both **backfills** old
+  dates and **deletes records** (proven 2026-07-13), and neither is visible to a date-floored
+  pull. When the probe does detect changes, the engine re-pulls the whole window anyway (it is
+  a single API page at this data size — same result as a merge, zero merge-drift risk).
+- **The safety gates** (all inside `28_auto_refresh.py`; the job physically cannot publish
+  without passing them): pull plausibility (API count must succeed, be ≥90% of local rows, and
+  match the rows actually downloaded) → every pipeline step must exit 0 → internal
+  reconciliation computed from the fresh outputs (surface + limited-access partitions the
+  total; the search and locate indexes sum back to it) → sanity bounds vs the previous snapshot
+  (new total ≥ old − 5 and ≤ old + 75; max CollisionDate never goes backward) → and a
+  no-change short-circuit (zero added/removed/modified records → clean exit, no commit, no
+  deploy). Auto-commits are labeled `auto: data refresh through YYYY-MM-DD — N new, M removed`.
+- **Where failures surface:** any abort or error **opens a GitHub Issue** on the repo (visible
+  to all collaborators — that is the alert channel). The live site is never touched on failure.
+- **Pause it:** repo → Actions → "Data refresh" → ⋯ menu → *Disable workflow*. Re-enable the
+  same way. **Run it manually:** same page → *Run workflow* (choose mode, optionally dry-run —
+  a dry run executes everything including the gates but never commits).
+- **No secrets, no setup.** The sidewalk inventory is committed to the repository
+  (redistribution permission granted July 2026), so a fresh checkout has everything except the
+  91 MB street network, which the job restores from the Actions cache or re-downloads from the
+  public city API (script 05). The workflow uses only the built-in `GITHUB_TOKEN`.
+  **Enabling the schedule** = uncomment the `cron` block at the top of
+  `.github/workflows/data-refresh.yml` (manual *Run workflow* is available regardless).
+- **Cost:** the repository is public, so GitHub Actions minutes are **free and unlimited**;
+  the run takes ~8–12 minutes (≈250–360 min/month — comfortably inside even the private-repo
+  free tier of 2,000 min/month, if the repo ever goes private).
+
+### Background: the endpoint, and the manual fallback
 
 Verified against the endpoint (details and tested queries in `outputs/data_source.md`): the crash
 layer is a standard ArcGIS REST `/query` endpoint that supports **date filtering**
 (`CollisionDate` is a true date field), **pagination** (`resultOffset`/`resultRecordCount=2000`),
-and **cheap count-only probes**. A competent developer can implement:
+and **cheap count-only probes**. The design the automation implements:
 
-- **Weekly incremental pull.** Query with the existing `where` clause **plus a CollisionDate
+- **Incremental pull (daily in the automation).** Query with the existing `where` clause **plus a CollisionDate
   floor**: `AND CollisionDate >= DATE '<local_dmax minus 30 days>'` (the 30-day overlap catches
   late-arriving reports for recent dates). Page through, dedupe person-rows to crashes, and merge
   into the local crash file **keyed on `MstrRecNbrTxt`** (replace matching ids, append new ones —
@@ -148,15 +184,14 @@ and **cheap count-only probes**. A competent developer can implement:
 
 **Costs (as configured today):**
 - **Hosting: $0.** A static page + two small serverless functions fit Vercel's free (Hobby) tier.
-  No database, no paid APIs. The custom-work items (`OPENAI_API_KEY`) are only needed if the AI
-  layer is ever enabled — set a hard spending limit on that key if so.
+  No database, no paid APIs, and no secrets of any kind in the current build.
 - **Data: $0.** All sources are public endpoints without keys.
 - **Domain:** currently the free `*.vercel.app` URL; a custom domain would be the only recurring
   cost (~$10–20/yr).
 
-**Monthly maintenance (~1–2 hours):**
-1. Refresh the data (run `01`, then the routine rebuild chain) and confirm the printed
-   reconciliation passes.
+**Monthly maintenance (~1 hour; data refreshes themselves are automated, §5):**
+1. Skim the Action's recent runs and any refresh-failure Issues; confirm the latest auto-commit's
+   reconciliation summary looks sane. (Manual fallback: run `01` + the routine rebuild chain.)
 2. Update the sanity anchors in `CLAUDE.md` to the new totals; skim the findings page for anything
    that reads oddly against the new numbers.
 3. Redeploy (push the rebuilt `outputs/interactive_map/` to Vercel) and spot-check: one corridor
@@ -168,8 +203,8 @@ and **cheap count-only probes**. A competent developer can implement:
 
 > StreetStat — pedestrian crash & infrastructure context for Memphis. Built by Samarth Desai, in
 > support of pedestrian-safety advocacy with Street Fair Memphis and Innovate Memphis.
-> https://memphis-pedestrian-incident-context.vercel.app/ (accessed *date*). Crash data: Tennessee
-> SAFETY MapServer (TDOT), window Jan 1 2023 – May 26 2026 *(use the "data current through" date
+> https://streetstat.org/ (accessed *date*). Crash data: Tennessee
+> SAFETY MapServer (TDOT), rolling window from Jan 1 2023 *(cite the "data current through" date
 > shown on the site at access time)*. Roads, boundary, and sidewalk inventory: City of Memphis
 > Public Works. Pedestrian signals: TDOT ADA Asset Data. Crosswalks: © OpenStreetMap contributors
 > (ODbL).
@@ -215,8 +250,9 @@ A suggestion (not a rule): work through **pull requests with one teammate's revi
 merge**. It costs a few minutes and means no single push can break the live public site.
 
 **Never commit, under any workflow:**
-- **API keys or secrets** — `openai_key.txt` (local dev only) and any `OPENAI_API_KEY` /
-  `INCIDENT_ACCESS_CODE` value. Production secrets live only in Vercel's environment settings.
+- **API keys or secrets of any kind.** The current build needs none — if a future feature ever
+  does (e.g. an AI service), its credentials belong in Vercel's environment settings (or a
+  gitignored local file for dev), never in the repository.
 - **The gitignored large data files** — `data/raw/memphis_streets.geojson` (~91 MB street
   network; script 05 regenerates it), the sidewalk delivery (`Memphis_Sidewalks_DMC*.zip` and
   `data/processed/memphis_sidewalks_32136.geojson` — also pending redistribution permission,

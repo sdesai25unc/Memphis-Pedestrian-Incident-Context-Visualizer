@@ -48,9 +48,10 @@ script 01.
 | date-typed fields (`esriFieldTypeDate`) | **`CollisionDate`, `CollisionDteTime`** |
 
 (The headline analysis runs on the **deduplicated, in-Memphis** subset — 1,294
-crashes / 175 fatal — which is a different, smaller denominator than the raw
-person-row count above. The 1,499 is the raw upstream person-row count, expected to
-drift as the state's rolling ~3-year window advances.)
+crashes / 175 fatal *at this 2026-06-28 verification; the totals advance with the
+rolling window (see CLAUDE.md's current anchors)* — a different, smaller denominator
+than the raw person-row count above. The 1,499 is the raw upstream person-row count
+on that date, expected to drift as the state's rolling ~3-year window advances.)
 
 ## Date filtering — YES, supported
 
