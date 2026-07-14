@@ -1,0 +1,104 @@
+# StreetStat scheduled data refresh — daily incremental + monthly full (HANDOFF §5).
+#
+# THE DAILY SCHEDULE IS INTENTIONALLY COMMENTED OUT pending the go-live decision — uncomment
+# the `schedule:` block below to activate it (that is the only change needed). Manual runs are
+# available immediately: repo → Actions → "Data refresh" → "Run workflow" (choose mode/dry-run).
+# Pause anytime: same page → "…" menu → Disable workflow.
+#
+# The refresh engine (scripts/28_auto_refresh.py) owns all safety gates and CANNOT publish:
+# it only edits the working tree and reports status=updated|nochange|aborted. This workflow
+# commits+pushes ONLY on status=updated (and never on dry runs); Vercel's auto-deploy picks up
+# the push. On any failure/abort, a GitHub Issue is opened — that is the alert channel.
+#
+# NO SECRETS REQUIRED. The sidewalk inventory is committed to the repo (redistribution
+# permission granted July 2026); the 91 MB street network is restored from the Actions cache
+# or re-downloaded from the public city API (script 05). Only the built-in GITHUB_TOKEN is used.
+
+name: Data refresh
+
+on:
+  # UNCOMMENT TO GO LIVE (daily 08:47 UTC ≈ 3:47 AM Memphis — low traffic, off the :00 rush):
+  # schedule:
+  #   - cron: "47 8 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Refresh mode"
+        type: choice
+        options: [auto, incremental, full]
+        default: auto
+      dry_run:
+        description: "Dry run (rebuild + gates, but never commit)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: data-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Verify committed inputs (sidewalks must ship with the checkout)
+        run: |
+          python -c "import json;d=json.load(open('data/processed/memphis_sidewalks_32136.geojson',encoding='utf-8'));n=len(d['features']);assert n>40000,f'sidewalk file looks wrong ({n} features)';print('sidewalks OK:',n,'features')"
+
+      - name: Restore street network (cache)
+        id: streets_cache
+        uses: actions/cache@v4
+        with:
+          path: data/raw/memphis_streets.geojson
+          key: streets-${{ github.run_id }}
+          restore-keys: streets-
+
+      - name: Download street network (fallback via public city API, script 05)
+        if: steps.streets_cache.outputs.cache-hit != 'true'
+        run: |
+          test -f data/raw/memphis_streets.geojson || python scripts/05_download_streets.py
+
+      - name: Run refresh with gates
+        id: refresh
+        run: >
+          python scripts/28_auto_refresh.py
+          --mode "${{ inputs.mode || 'auto' }}"
+          ${{ inputs.dry_run == true && '--dry-run' || '' }}
+
+      - name: Commit and push (only on real updates)
+        if: steps.refresh.outputs.status == 'updated' && inputs.dry_run != true
+        run: |
+          git config user.name "streetstat-refresh[bot]"
+          git config user.email "streetstat-refresh@users.noreply.github.com"
+          git add -A data/ outputs/
+          git commit -m "${{ steps.refresh.outputs.commit_msg }}"
+          git push
+          echo "pushed — Vercel auto-deploy will pick this up."
+
+      - name: Open an Issue on failure or abort
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="Data refresh failed ($(date -u +%F)) — ${{ steps.refresh.outputs.reason || 'see run log' }}"
+          gh issue create --title "$TITLE" --body "Automated data refresh aborted or errored.
+
+          - Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          - Reason: ${{ steps.refresh.outputs.reason || 'step failed before the gate report — open the run log' }}
+          - The live site was NOT changed (the job pushes only after every gate passes).
+
+          Manual fallback procedure: HANDOFF.md §5." || echo "issue creation failed (non-fatal)"
