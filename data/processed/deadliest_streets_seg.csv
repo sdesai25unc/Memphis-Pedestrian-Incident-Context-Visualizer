@@ -1,5 +1,5 @@
 Street_Name,Total_Crashes,Fatal_Crashes,Serious_Injuries,Dominant_Jurisdiction,Mixed_Jurisdiction,SPDLIMIT,LANES
-POPLAR AVE,46,9,5,City of Memphis,True,40.0,7
+POPLAR AVE,47,9,5,City of Memphis,True,40.0,7
 UNION AVE,37,8,11,TDOT state route,False,35.0,6
 LAMAR AVE,33,7,9,TDOT state route,False,40.0,7
 WINCHESTER RD,28,5,6,City of Memphis,False,45.0,7
@@ -347,6 +347,7 @@ ENTERPRISE AVE,1,0,1,City of Memphis,False,30.0,2
 HOBSON RD,1,0,0,City of Memphis,False,30.0,2
 WORTHINGTON ST,1,0,1,City of Memphis,False,30.0,2
 SHELLEY RENEE LN,1,0,0,City of Memphis,False,30.0,2
+WALES AVE,1,0,0,City of Memphis,False,35.0,2
 S FOURTH ST,1,0,0,City of Memphis,False,30.0,3
 VANDALIA ST,1,0,0,City of Memphis,False,30.0,2
 ESTATE DR,1,0,0,City of Memphis,False,30.0,5

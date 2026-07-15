@@ -57,7 +57,7 @@
   MONROE AVE                 ov10=0.94 name_match=False MTFCC=S1400
 ```
 
-Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (545 streets).
+Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (546 streets).
 
 ## Phase 3 — old (distance) vs new (segment) split
 
@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1337) | 995 (74.4%) | 342 (25.6%) | (in City) | (in City) |
-| NEW segment, surface (n=1306) | 1040 (79.6%) | 266 (20.4%) | 23 sep. | 8 sep. |
+| OLD distance (n=1339) | 997 (74.5%) | 342 (25.5%) | (in City) | (in City) |
+| NEW segment, surface (n=1308) | 1042 (79.7%) | 266 (20.3%) | 23 sep. | 8 sep. |
 
 **FATAL crashes**
 
@@ -75,7 +75,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=179) | 125 (69.8%) | 54 (30.2%) | (in City) | (in City) |
 | NEW segment, surface (n=167) | 121 (72.5%) | 46 (27.5%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 416 of 1337** (reconciles: sum still 1337; fatal 179).
+**Crashes that changed label: 416 of 1339** (reconciles: sum still 1339; fatal 179).
 
 ```
   TDOT               -> TDOT state route   : 216
@@ -91,7 +91,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | street | OLD City/TDOT | NEW City/TDOT/Int/Ramp |
 |---|---|---|
-| POPLAR | 27/19 | 27/19/0/0 |
+| POPLAR | 28/19 | 28/19/0/0 |
 | LAMAR | 3/30 | 0/33/0/0 |
 | SUMMER | 5/14 | 1/18/0/0 |
 | UNION | 6/31 | 2/35/0/0 |
@@ -108,7 +108,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
   300953626 JACKSON AVE          ov10=0.39 oldDistToSR=2.8m  (35.17769,-89.93764)
 ```
 
-**Reframe check:** new surface split City 79.6% vs TDOT 20.4% — City still owns the majority of surface crashes; fatal surface City 72.5% vs TDOT 27.5%.
+**Reframe check:** new surface split City 79.7% vs TDOT 20.3% — City still owns the majority of surface crashes; fatal surface City 72.5% vs TDOT 27.5%.
 
 ## Phase 4 — display layer
 

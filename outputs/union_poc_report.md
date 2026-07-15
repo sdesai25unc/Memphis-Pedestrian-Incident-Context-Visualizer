@@ -33,7 +33,7 @@
 - Median safe-crossing spacing **804 ft (245 m)** vs the FHWA marked-crossing best-practice guidance of ~300 ft (91 m). The longest gap is **9.7×** the ~300 ft figure. *(FHWA ~300 ft is best-practice spacing guidance, not a legal standard.)*
 
 ## 6. Visualization
-- Focused Union map written to `outputs\interactive_map\union_poc.html` (crosswalk lines by type, TDOT signal points per-corner, crashes shaded by distance, longest gap highlighted). The citywide map is untouched.
+- Focused Union map written to `outputs/interactive_map/union_poc.html` (crosswalk lines by type, TDOT signal points per-corner, crashes shaded by distance, longest gap highlighted). The citywide map is untouched.
 
 ## Method judgment calls
 - Distance is along-corridor (linear referencing on the single Union reference line), not straight-line — it reflects walking distance along the road.
