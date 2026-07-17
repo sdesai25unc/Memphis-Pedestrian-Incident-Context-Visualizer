@@ -1,8 +1,7 @@
 # StreetStat scheduled data refresh — daily incremental + monthly full (HANDOFF §5).
 #
-# THE DAILY SCHEDULE IS INTENTIONALLY COMMENTED OUT pending the go-live decision — uncomment
-# the `schedule:` block below to activate it (that is the only change needed). Manual runs are
-# available immediately: repo → Actions → "Data refresh" → "Run workflow" (choose mode/dry-run).
+# THE DAILY SCHEDULE IS LIVE (since 2026-07-16, after the first supervised real run passed).
+# Manual runs remain available: repo → Actions → "Data refresh" → "Run workflow" (mode/dry-run).
 # Pause anytime: same page → "…" menu → Disable workflow.
 #
 # The refresh engine (scripts/28_auto_refresh.py) owns all safety gates and CANNOT publish:
@@ -17,9 +16,9 @@
 name: Data refresh
 
 on:
-  # UNCOMMENT TO GO LIVE (daily 08:47 UTC ≈ 3:47 AM Memphis — low traffic, off the :00 rush):
-  # schedule:
-  #   - cron: "47 8 * * *"
+  # LIVE since 2026-07-16 (daily 08:47 UTC ≈ 3:47 AM Memphis — low traffic, off the :00 rush):
+  schedule:
+    - cron: "47 8 * * *"
   workflow_dispatch:
     inputs:
       mode:
