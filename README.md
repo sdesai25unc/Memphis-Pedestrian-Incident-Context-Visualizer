@@ -186,6 +186,24 @@ Built by **Samarth Desai**.
 *(Historical notes — figures cited in each dated entry below reflect that date's data window, not the
 current totals; the live site is always authoritative.)*
 
+### SEO/GEO finalization (2026-07-17)
+
+Presentation-layer only (generators `18`/`24`; all computed numbers unchanged, reconciliation
+1,339/179 reprinted OK on rebuild):
+
+- **Retitle:** `<title>` is now "StreetStat — Memphis Pedestrian Crashes & Infrastructure Context";
+  the hero keeps the StreetStat wordmark with subtitle "Memphis pedestrian crashes & infrastructure
+  context"; the meta description names the geography and the computed data window; canonical tag
+  unchanged. Open Graph tags and a JSON-LD `Dataset` block (spatial/temporal coverage computed at
+  build time) added.
+- **About section:** fixed owner-written copy added to the Home view above the footer (sources,
+  independence disclaimer, Innovate Memphis fellowship, MIT/GitHub).
+- **Language pass:** "Since data start" time-table labels now name the actual computed range
+  ("All data (Jan 2023 – Jul 2026)"); raw ISO dates in visible prose replaced with readable full
+  dates; the methodology reproducibility note no longer cites a stale script range and links the
+  actual repository. No causal claims introduced; every caveat kept.
+- `sitemap.xml` + `robots.txt` were added 2026-07-16 (static files in `outputs/interactive_map/`).
+
 ### StreetStat UI/UX redesign (2026-07-11)
 
 The public page was rebranded **StreetStat** and restructured into a four-view product, with the

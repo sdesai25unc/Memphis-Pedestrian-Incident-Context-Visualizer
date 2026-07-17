@@ -939,7 +939,8 @@ _JS = r"""
    for(j=0;j<xf.length;j++)if(xf[j])deaths++;
    var dmax=IDX.meta.dmax,dmin=IDX.meta.dmin;
    function cut(m){var d=new Date(dmax+'T00:00:00');d.setMonth(d.getMonth()-m);return d;}
-   var W=[['Since data start',null],['Last 12 months',12],['Last 6 months',6],['Last 3 months',3],['Last 1 month',1]];
+   var allLbl='All data ('+fmtMon(dmin)+' – '+fmtMon(dmax)+')';
+   var W=[[allLbl,null],['Last 12 months',12],['Last 6 months',6],['Last 3 months',3],['Last 1 month',1]];
    var body=W.map(function(w){
      var inc=0,dth=0,co=(w[1]==null?null:cut(w[1]));
      for(var i=0;i<xd.length;i++){
@@ -949,7 +950,7 @@ _JS = r"""
      }
      return '<tr><td>'+w[0]+'</td><td class="n">'+inc+'</td><td class="n">'+dth+'</td></tr>';
    }).join('');
-   return '<div class="cstats"><div class="row"><b>Since data start:</b> '+total+' incidents · '+deaths+
+   return '<div class="cstats"><div class="row"><b>'+allLbl+':</b> '+total+' incidents · '+deaths+
      ' deaths <a id="twLink" onclick="return __toggleTW()">▸ Show time breakdown</a></div>'+
      '<div id="tw" style="display:none">'+
        '<table class="tw"><thead><tr><th>Window</th><th class="n">Incidents</th><th class="n">Deaths</th></tr></thead>'+
@@ -1347,7 +1348,7 @@ _JS = r"""
    var xd=c.xd||[],xf=c.xf||[];
    var dmax=IDX.meta.dmax,dmin=IDX.meta.dmin;
    function cut(m){var d=new Date(dmax+'T00:00:00');d.setMonth(d.getMonth()-m);return d;}
-   var W=[['Since data start',null],['Last 12 months',12],['Last 6 months',6],['Last 3 months',3],['Last 1 month',1]];
+   var W=[['All data ('+fmtMon(dmin)+' – '+fmtMon(dmax)+')',null],['Last 12 months',12],['Last 6 months',6],['Last 3 months',3],['Last 1 month',1]];
    var body=W.map(function(w){
      var inc=0,dth=0,co=(w[1]==null?null:cut(w[1]));
      for(var i=0;i<xd.length;i++){
@@ -1423,7 +1424,7 @@ _JS = r"""
      (ambiguous?'<div class="row na">Ambiguous: also '+Math.round(alt.d)+' m from '+alt.c.disp+'; counting '+c.disp+'.</div>':'')+
      ((!ambiguous&&hit.d>35)?'<div class="row na">Your point is '+Math.round(hit.d)+' m from the nearest road on record — it may not be on '+c.disp+'.</div>':'')+
      row('Crashes within ±'+W+' m',res.n+' ('+res.fat+' fatal)')+
-     row('Whole road',tot+' incidents · '+dth+' deaths <span style="color:var(--muted,#71717a)">('+IDX.meta.dmin+' → '+IDX.meta.dmax+')</span>')+
+     row('Whole road',tot+' incidents · '+dth+' deaths <span style="color:var(--muted,#71717a)">('+fmtMon(IDX.meta.dmin)+' – '+fmtMon(IDX.meta.dmax)+')</span>')+
      row('Nearest mapped intersection',nn.n?(nn.n.disp+' <span style="color:var(--muted,#71717a)">— '+Math.round(nn.d)+' m away · '+sigTxt+' · '+
        (nn.n.crashes>0?(nn.n.crashes+' crashes ('+nn.n.deaths+' fatal)'):'0 incidents reported')+'</span>'):na())+
      row('Nearest safe crossing',(nn.n&&nn.n.near_safe_ft!=null)?(nn.n.near_safe_ft+' ft (from the nearest mapped intersection)'):na())+

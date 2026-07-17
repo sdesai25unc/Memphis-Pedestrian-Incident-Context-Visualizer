@@ -253,7 +253,7 @@ def hero_html(s):
   <div class="inner">
     <div class="eyebrow">Open data &middot; Memphis, Tennessee</div>
     <h1 class="hero-title">StreetStat</h1>
-    <p class="hero-sub">Pedestrian crash &amp; infrastructure context for Memphis</p>
+    <p class="hero-sub">Memphis pedestrian crashes &amp; infrastructure context</p>
     <p class="hero-thesis">Local coverage often frames each pedestrian death as an individual mistake.
        StreetStat puts every recorded pedestrian and non-motorist crash in its <b>infrastructure
        context</b> instead: what the road is like &mdash; lanes, posted speed, lighting, sidewalks,
@@ -302,8 +302,8 @@ def dashboard_html(s):
 <section id="stats"><div class="inner">
   <h2>Findings &mdash; who owns the deadly roads, and why people die on them</h2>
   <p class="sub">All figures are the {s['N']:,} pedestrian / non-motorist crashes inside the
-     City of Memphis ({s['NF']} fatal), {s['dmin']} to {s['dmax']}. Recomputed from the data &mdash;
-     nothing hand-entered.</p>
+     City of Memphis ({s['NF']} fatal), {fmt_full(s['dmin'])} to {fmt_full(s['dmax'])}. Recomputed
+     from the data &mdash; nothing hand-entered.</p>
 
   <div class="cardgrid">
     <div class="card city">
@@ -385,8 +385,9 @@ def dashboard_html(s):
   </table>
 
   <div class="foot">
-    <p><b>Method.</b> Tennessee SAFETY non-motorist crash records for Shelby County, {s['dmin']} to
-       {s['dmax']}, deduplicated to one crash per report and filtered to inside the City of Memphis.
+    <p><b>Method.</b> Tennessee SAFETY non-motorist crash records for Shelby County,
+       {fmt_full(s['dmin'])} to {fmt_full(s['dmax'])}, deduplicated to one crash per report and
+       filtered to inside the City of Memphis.
        Each crash is assigned to the road it happened on &mdash; City of Memphis, a TDOT state route,
        or a limited-access TDOT road &mdash; by matching it to the nearest road centerline (all distance
        math in EPSG:32136, Tennessee meters). Pedalcyclists are excluded. Every figure is recomputed
@@ -396,6 +397,32 @@ def dashboard_html(s):
        <i>Dangerous by Design 2024</i>. Sam&nbsp;Cooper Blvd&apos;s low-speed western end is technically a
        city surface street; its tint here reflects the TDOT expressway.</p>
   </div>
+</div></section>
+"""
+
+
+def about_html():
+    """The About section — fixed copy (owner-approved wording, 2026-07-17); deliberately plain.
+    Do not embellish or add promotional language. Only the two reference links are markup."""
+    repo = "https://github.com/sdesai25unc/Memphis-Pedestrian-Incident-Context-Visualizer"
+    return f"""
+<section id="about"><div class="inner">
+  <h2>About StreetStat</h2>
+  <p>StreetStat maps every reported pedestrian crash in Memphis and Shelby County since
+     January 2023 and puts each one in context: who owns the road where it happened, whether the
+     city&rsquo;s inventory shows a sidewalk there, how far the nearest marked crossing is, and how
+     that stretch of road compares over time. The data comes from public sources, mainly TDOT&rsquo;s
+     crash database, the City of Memphis sidewalk inventory, and TDOT&rsquo;s signal records. The
+     joining, counting, and classification are done by StreetStat&rsquo;s own open-source pipeline,
+     and every method is documented on the <a href="#/methodology">Methodology page</a>.</p>
+  <p>The site updates itself daily from the state&rsquo;s crash database. Numbers here are computed
+     independently and are not official figures from TDOT or the City of Memphis. They can differ
+     from official counts because of scope and methodology, and the
+     <a href="#/methodology">Methodology page</a> explains exactly how each number is produced.</p>
+  <p>StreetStat was built in summer 2026 during a civic fellowship with Innovate Memphis. The code
+     is open source under the MIT license, and the full repository, including every script that
+     produces what you see here, is public on
+     <a href="{repo}" rel="noopener">GitHub</a>.</p>
 </div></section>
 """
 
@@ -484,7 +511,7 @@ def methodology_html(s):
      design (this is a pedestrian project). Crashes with missing or impossible coordinates (blank,
      0&deg;/0&deg;, outside Shelby County) are flagged and kept in the file but excluded from headline
      counts, and everything is filtered to points inside the City of Memphis boundary. Result:
-     <b>{s['N']:,}</b> crashes ({s['NF']} fatal), {s['dmin']} to {s['dmax']}.</p>
+     <b>{s['N']:,}</b> crashes ({s['NF']} fatal), {fmt_full(s['dmin'])} to {fmt_full(s['dmax'])}.</p>
   <p><b>Limitations:</b> the state file is a rolling window of roughly the last three years, so totals
      shift slowly as it advances. Official crash data is finalized with a <b>reporting lag</b> &mdash;
      the most recent months undercount, and every time-window table on this site says so. The data is
@@ -593,9 +620,9 @@ def methodology_html(s):
   <p class="srcline">Code: <code>scripts/23_union_poc.py</code> &middot; <code>scripts/19</code>&ndash;<code>22</code></p>
 
   <h3>Reproducibility</h3>
-  <p>The pipeline is a sequence of numbered scripts (<code>01</code>&ndash;<code>25</code>) run in order
+  <p>The pipeline is a sequence of numbered scripts run in order
      (download &rarr; classify &rarr; analyze &rarr; build) &mdash; see the
-     <a href="https://github.com/sdesai25unc" rel="noopener">repository</a>
+     <a href="https://github.com/sdesai25unc/Memphis-Pedestrian-Incident-Context-Visualizer" rel="noopener">repository</a>
      README for the exact commands. Raw API downloads are never edited; every derived file is written
      as a new file; and each build prints its own reconciliation against the fixed totals before the
      page is published. Code is MIT-licensed; source data remains under its providers&rsquo; terms
@@ -614,8 +641,11 @@ def build_html(s, crashes, segments, boundary, crossings):
     page = _TEMPLATE
     page = page.replace("/*__HERO__*/", hero_html(s))
     page = page.replace("/*__DASHBOARD__*/", dashboard_html(s))
+    page = page.replace("/*__ABOUT__*/", about_html())
     page = page.replace("/*__METHODOLOGY__*/", methodology_html(s))
     page = page.replace("__DMAX_FULL__", fmt_full(s["dmax"]))
+    page = page.replace("__DMIN_MON__", fmt_month(s["dmin"])).replace("__DMAX_MON__", fmt_month(s["dmax"]))
+    page = page.replace("__DMIN_ISO__", s["dmin"]).replace("__DMAX_ISO__", s["dmax"])
     page = page.replace("__CITY_C__", CITY_C).replace("__TDOT_C__", TDOT_C)
     page = page.replace("__LIM_C__", LIM_C).replace("__FATAL_STROKE__", FATAL_STROKE)
     page = page.replace("__CRASHES__", json.dumps(crashes, separators=(",", ":")))
@@ -757,9 +787,17 @@ _TEMPLATE = r"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>StreetStat — pedestrian crash &amp; infrastructure context for Memphis</title>
-<meta name="description" content="StreetStat puts every recorded Memphis pedestrian crash in its infrastructure context: road design, ownership (City vs TDOT), sidewalks, and crossings — computed from public data.">
+<title>StreetStat — Memphis Pedestrian Crashes &amp; Infrastructure Context</title>
+<meta name="description" content="StreetStat maps every reported pedestrian crash in Memphis, Tennessee (__DMIN_MON__ to __DMAX_MON__) and shows who owns each road (City of Memphis or TDOT), sidewalk inventory status, and distance to the nearest marked crossing, computed from public data.">
 <link rel="canonical" href="https://streetstat.org/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="StreetStat">
+<meta property="og:title" content="StreetStat — Memphis Pedestrian Crashes &amp; Infrastructure Context">
+<meta property="og:description" content="StreetStat maps every reported pedestrian crash in Memphis, Tennessee (__DMIN_MON__ to __DMAX_MON__) and shows who owns each road (City of Memphis or TDOT), sidewalk inventory status, and distance to the nearest marked crossing, computed from public data.">
+<meta property="og:url" content="https://streetstat.org/">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Dataset","name":"StreetStat — Memphis Pedestrian Crashes & Infrastructure Context","description":"Every reported pedestrian and non-motorist crash inside the City of Memphis, __DMIN_MON__ to __DMAX_MON__, each attributed to the road it happened on and its owner (City of Memphis or TDOT), with sidewalk inventory status and crossing context, computed from public data.","url":"https://streetstat.org/","spatialCoverage":"Memphis, Tennessee, United States","temporalCoverage":"__DMIN_ISO__/__DMAX_ISO__","isAccessibleForFree":true,"creator":{"@type":"Person","name":"Samarth Desai"}}
+</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2318181b'/%3E%3Ccircle cx='11' cy='21' r='4' fill='%231b9e8f'/%3E%3Ccircle cx='21' cy='11' r='4' fill='%23d6453d'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -985,6 +1023,12 @@ _TEMPLATE = r"""<!DOCTYPE html>
     font-size: 13.5px; color: var(--ink-2); margin: 12px 0; }
   .doc .srcline { font-size: 12.5px; color: var(--muted); margin: 2px 0 0; }
 
+  /* ============ about ============ */
+  #about { background: var(--surface); border-top: 1px solid var(--border); padding: 46px 24px 56px; }
+  #about .inner { max-width: 1060px; margin: 0 auto; }
+  #about h2 { font-size: 26px; letter-spacing: -.02em; margin: 0 0 14px; }
+  #about p { max-width: 760px; font-size: 14.5px; line-height: 1.7; color: var(--ink-2); margin: 0 0 14px; }
+
   /* ============ site footer ============ */
   #sitefoot { border-top: 1px solid var(--border); background: var(--surface);
     padding: 26px 24px 34px; font-size: 12.5px; color: var(--muted); }
@@ -1009,8 +1053,9 @@ _TEMPLATE = r"""<!DOCTYPE html>
 <section id="view-home" class="view">
 /*__HERO__*/
 /*__DASHBOARD__*/
+/*__ABOUT__*/
 <footer id="sitefoot"><div class="inner">
-  <span>StreetStat &mdash; pedestrian crash &amp; infrastructure context for Memphis. Built by Samarth Desai.
+  <span>StreetStat &mdash; Memphis pedestrian crashes &amp; infrastructure context. Built by Samarth Desai.
     <b>Data current through __DMAX_FULL__</b> (state crash file; reporting lag applies).</span>
   <span>Data: TDOT SAFETY &middot; City of Memphis Public Works GIS &middot; TDOT ADA inventory &middot; &copy; OpenStreetMap contributors &middot; US Census geocoder</span>
   <span class="provenance">All statistics on StreetStat are computed by its own open-source pipeline
