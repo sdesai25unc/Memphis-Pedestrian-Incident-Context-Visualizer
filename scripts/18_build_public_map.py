@@ -979,7 +979,7 @@ _TEMPLATE = r"""<!DOCTYPE html>
   /* ============ investigate ============ */
   #invLayout { display: grid; grid-template-columns: 430px 1fr; height: calc(100vh - var(--nav-h)); }
   #invSide { overflow-y: auto; background: var(--surface); border-right: 1px solid var(--border);
-    padding: 26px 24px 34px; }
+    padding: 26px 24px 72px; }  /* extra bottom padding clears the fixed #fbBtn pill */
   #invSide h2 { margin: 0 0 4px; font-size: 21px; letter-spacing: -.02em; }
   #invSide .invsub { margin: 0 0 18px; font-size: 13px; color: var(--muted); line-height: 1.55; }
   #view-investigate .mapslot { position: relative; }
@@ -1023,6 +1023,21 @@ _TEMPLATE = r"""<!DOCTYPE html>
     font-size: 13.5px; color: var(--ink-2); margin: 12px 0; }
   .doc .srcline { font-size: 12.5px; color: var(--muted); margin: 2px 0 0; }
 
+  /* ============ floating feedback button ============ */
+  /* bottom-LEFT: bottom-right holds the Leaflet zoom + attribution, both top corners hold the
+     search and lens panels. z 2500 sits above the map and panels (1100/1200), below the nav (3000). */
+  #fbBtn { position: fixed; left: 16px; bottom: 16px; z-index: 2500;
+    display: inline-flex; align-items: center; padding: 7px 15px;
+    background: var(--surface); color: var(--ink-2); border: 1px solid var(--border-strong);
+    border-radius: 999px; box-shadow: var(--shadow-md); font-family: var(--sans);
+    font-size: 12.5px; font-weight: 600; text-decoration: none;
+    transition: background .12s, border-color .12s, color .12s; }
+  #fbBtn:hover { background: var(--accent-soft); border-color: var(--accent);
+    color: var(--accent-ink); text-decoration: none; }
+  #fbBtn:focus-visible { outline: none; border-color: var(--accent);
+    box-shadow: var(--shadow-md), 0 0 0 3px var(--accent-soft); }
+  @media (max-width: 560px) { #fbBtn { left: 10px; bottom: 10px; padding: 6px 12px; } }
+
   /* ============ about ============ */
   #about { background: var(--surface); border-top: 1px solid var(--border); padding: 46px 24px 56px; }
   #about .inner { max-width: 1060px; margin: 0 auto; }
@@ -1031,7 +1046,7 @@ _TEMPLATE = r"""<!DOCTYPE html>
 
   /* ============ site footer ============ */
   #sitefoot { border-top: 1px solid var(--border); background: var(--surface);
-    padding: 26px 24px 34px; font-size: 12.5px; color: var(--muted); }
+    padding: 26px 24px 64px; font-size: 12.5px; color: var(--muted); }  /* bottom clears #fbBtn */
   #sitefoot .inner { max-width: 1060px; margin: 0 auto; display: flex; flex-wrap: wrap;
     gap: 8px 26px; justify-content: space-between; }
   #sitefoot .provenance { flex-basis: 100%; padding-top: 10px; margin-top: 2px;
@@ -1058,6 +1073,9 @@ _TEMPLATE = r"""<!DOCTYPE html>
   <span>StreetStat &mdash; Memphis pedestrian crashes &amp; infrastructure context. Built by Samarth Desai.
     <b>Data current through __DMAX_FULL__</b> (state crash file; reporting lag applies).</span>
   <span>Data: TDOT SAFETY &middot; City of Memphis Public Works GIS &middot; TDOT ADA inventory &middot; &copy; OpenStreetMap contributors &middot; US Census geocoder</span>
+  <span><a href="#/methodology">Methodology</a> &middot;
+    <a href="https://github.com/sdesai25unc/Memphis-Pedestrian-Incident-Context-Visualizer" rel="noopener">GitHub</a> &middot;
+    <a href="https://forms.gle/udM6VewkBPmRgz4b6" target="_blank" rel="noopener">Feedback</a></span>
   <span class="provenance">All statistics on StreetStat are computed by its own open-source pipeline
     from public data sources. They are not official figures published by TDOT or the City of Memphis
     and may differ from official counts due to methodology. Exact attribution and counting methods
@@ -1112,6 +1130,8 @@ _TEMPLATE = r"""<!DOCTYPE html>
 /*__METHODOLOGY__*/
 </section>
 </main>
+
+<a id="fbBtn" href="https://forms.gle/udM6VewkBPmRgz4b6" target="_blank" rel="noopener">Feedback</a>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
