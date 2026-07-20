@@ -57,7 +57,7 @@
   MONROE AVE                 ov10=0.94 name_match=False MTFCC=S1400
 ```
 
-Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (546 streets).
+Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (547 streets).
 
 ## Phase 3 — old (distance) vs new (segment) split
 
@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1339) | 997 (74.5%) | 342 (25.5%) | (in City) | (in City) |
-| NEW segment, surface (n=1308) | 1042 (79.7%) | 266 (20.3%) | 23 sep. | 8 sep. |
+| OLD distance (n=1340) | 998 (74.5%) | 342 (25.5%) | (in City) | (in City) |
+| NEW segment, surface (n=1309) | 1043 (79.7%) | 266 (20.3%) | 23 sep. | 8 sep. |
 
 **FATAL crashes**
 
@@ -75,7 +75,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=179) | 125 (69.8%) | 54 (30.2%) | (in City) | (in City) |
 | NEW segment, surface (n=167) | 121 (72.5%) | 46 (27.5%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 416 of 1339** (reconciles: sum still 1339; fatal 179).
+**Crashes that changed label: 416 of 1340** (reconciles: sum still 1340; fatal 179).
 
 ```
   TDOT               -> TDOT state route   : 216
