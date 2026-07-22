@@ -70,6 +70,7 @@ EASTMORELAND AVE,4,0,3,City of Memphis,False,30.0,2
 SEMMES ST,4,0,0,City of Memphis,False,30.0,5
 E PARKWAY N,4,0,1,TDOT state route,False,40.0,3
 E ALCY RD,4,0,0,City of Memphis,False,35.0,2
+PEABODY PL,4,0,1,City of Memphis,False,30.0,4
 RIDGEWAY RD,4,0,0,City of Memphis,False,40.0,5
 W RAINES RD,4,0,0,City of Memphis,False,40.0,5
 SAM COOPER BLVD,3,2,1,City of Memphis,False,40.0,6
@@ -109,7 +110,6 @@ HESTER RD,3,0,0,City of Memphis,False,35.0,2
 E E H CRUMP BLVD,3,0,2,TDOT state route,False,40.0,6
 E ROLLINS RD,3,0,2,City of Memphis,False,30.0,2
 KNIGHT RD,3,0,1,City of Memphis,False,35.0,2
-PEABODY PL,3,0,1,City of Memphis,False,30.0,2
 SHELBY OAKS DR,3,0,2,City of Memphis,False,40.0,4
 JIM MCGEHEE PKWY,3,0,2,City of Memphis,False,30.0,2
 W SHELBY DR,2,1,1,City of Memphis,False,35.0,2
@@ -155,6 +155,7 @@ WELLONS AVE,2,0,1,City of Memphis,False,30.0,2
 CELLA ST,2,0,0,City of Memphis,False,30.0,2
 GRACELAND DR,2,0,0,City of Memphis,False,30.0,2
 US HIGHWAY 64,2,0,1,TDOT state route,False,45.0,5
+KIMBALL AVE,2,0,1,City of Memphis,False,40.0,2
 MYNDERS AVE,2,0,0,City of Memphis,False,30.0,2
 LESTER ST,2,0,1,City of Memphis,False,30.0,2
 FARMVILLE AVE,2,0,1,City of Memphis,False,30.0,2
@@ -347,6 +348,7 @@ ENTERPRISE AVE,1,0,1,City of Memphis,False,30.0,2
 HOBSON RD,1,0,0,City of Memphis,False,30.0,2
 WORTHINGTON ST,1,0,1,City of Memphis,False,30.0,2
 SHELLEY RENEE LN,1,0,0,City of Memphis,False,30.0,2
+ROBIN HOOD LN,1,0,1,City of Memphis,False,35.0,2
 WALES AVE,1,0,0,City of Memphis,False,35.0,2
 S FOURTH ST,1,0,0,City of Memphis,False,30.0,3
 VANDALIA ST,1,0,0,City of Memphis,False,30.0,2
@@ -381,7 +383,6 @@ GARLAND ST,1,0,0,City of Memphis,False,30.0,2
 WOODMONT DR,1,0,0,City of Memphis,False,30.0,2
 BELLE FOREST DR,1,0,1,City of Memphis,False,30.0,2
 OBERLE AVE,1,0,0,City of Memphis,False,30.0,2
-KIMBALL AVE,1,0,1,City of Memphis,False,40.0,2
 SELECT AVE,1,0,0,City of Memphis,False,30.0,2
 EVELYN AVE,1,0,0,City of Memphis,False,30.0,2
 OVERLEA CV,1,0,0,City of Memphis,False,25.0,2
