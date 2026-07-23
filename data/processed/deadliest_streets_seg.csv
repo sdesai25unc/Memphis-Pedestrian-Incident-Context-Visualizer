@@ -1,6 +1,6 @@
 Street_Name,Total_Crashes,Fatal_Crashes,Serious_Injuries,Dominant_Jurisdiction,Mixed_Jurisdiction,SPDLIMIT,LANES
-POPLAR AVE,47,9,5,City of Memphis,True,40.0,7
-UNION AVE,37,8,11,TDOT state route,False,35.0,6
+POPLAR AVE,48,9,5,City of Memphis,True,40.0,7
+UNION AVE,38,8,11,TDOT state route,False,35.0,6
 LAMAR AVE,33,7,9,TDOT state route,False,40.0,7
 WINCHESTER RD,28,5,6,City of Memphis,False,45.0,7
 PARK AVE,25,4,7,City of Memphis,False,40.0,4
