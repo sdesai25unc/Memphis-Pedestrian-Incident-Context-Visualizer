@@ -1,6 +1,6 @@
 Street_Name,Total_Crashes,Fatal_Crashes,Serious_Injuries,Dominant_Jurisdiction,Mixed_Jurisdiction,SPDLIMIT,LANES
 POPLAR AVE,48,9,5,City of Memphis,True,40.0,7
-UNION AVE,38,8,11,TDOT,True,35.0,6
+UNION AVE,39,9,11,TDOT,True,35.0,6
 LAMAR AVE,33,7,9,TDOT,False,40.0,7
 WINCHESTER RD,28,5,6,City of Memphis,False,45.0,7
 PARK AVE,25,4,7,City of Memphis,True,40.0,4
@@ -154,6 +154,7 @@ N FRONT ST,2,0,0,City of Memphis,False,30.0,5
 WELLONS AVE,2,0,1,City of Memphis,False,30.0,2
 CELLA ST,2,0,0,City of Memphis,False,30.0,2
 GRACELAND DR,2,0,0,City of Memphis,False,30.0,2
+GRUBER DR,2,0,0,City of Memphis,False,30.0,2
 US HIGHWAY 64,2,0,1,TDOT,False,45.0,5
 KIMBALL AVE,2,0,1,City of Memphis,False,40.0,2
 MYNDERS AVE,2,0,0,City of Memphis,False,30.0,2
@@ -341,7 +342,6 @@ E ALSTON AVE,1,0,0,City of Memphis,False,30.0,2
 MOUNT OLIVE RD,1,0,0,City of Memphis,False,25.0,2
 JORDAN DR,1,0,0,City of Memphis,False,35.0,2
 LOWELL AVE,1,0,1,City of Memphis,False,30.0,2
-GRUBER DR,1,0,0,City of Memphis,False,30.0,2
 KELTNER CIR,1,0,0,City of Memphis,False,30.0,2
 CAPITAL AVE,1,0,0,City of Memphis,False,30.0,2
 ENTERPRISE AVE,1,0,1,TDOT,False,30.0,2
