@@ -157,6 +157,7 @@ GRACELAND DR,2,0,0,City of Memphis,False,30.0,2
 GRUBER DR,2,0,0,City of Memphis,False,30.0,2
 US HIGHWAY 64,2,0,1,TDOT,False,45.0,5
 KIMBALL AVE,2,0,1,City of Memphis,False,40.0,2
+DEADRICK AVE,2,0,2,City of Memphis,False,35.0,2
 MYNDERS AVE,2,0,0,City of Memphis,False,30.0,2
 LESTER ST,2,0,1,City of Memphis,True,30.0,2
 FARMVILLE AVE,2,0,1,City of Memphis,False,30.0,2
@@ -359,7 +360,6 @@ HELENE RD,1,0,0,City of Memphis,False,30.0,2
 E FAIRWAY AVE,1,0,1,City of Memphis,False,30.0,2
 KINGS TRAIL CV,1,0,0,City of Memphis,False,25.0,2
 HUNTER AVE,1,0,0,City of Memphis,False,30.0,2
-DEADRICK AVE,1,0,1,City of Memphis,False,35.0,2
 ARRINGTON AVE,1,0,0,TDOT,False,30.0,2
 BLANCHARD RD,1,0,0,City of Memphis,False,30.0,2
 PRATT ST,1,0,0,City of Memphis,False,30.0,2
