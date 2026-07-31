@@ -20,9 +20,9 @@ CHELSEA AVE,13,2,3,City of Memphis,True,40.0,4
 E BROOKS RD,11,3,3,City of Memphis,False,45.0,7
 S PERKINS RD,11,2,2,City of Memphis,False,40.0,7
 S PARKWAY E,11,2,4,City of Memphis,False,35.0,5
+SYCAMORE VIEW RD,10,2,3,City of Memphis,False,45.0,7
 FRAYSER BLVD,10,1,3,City of Memphis,False,40.0,4
 N HOLLYWOOD ST,9,4,0,City of Memphis,False,40.0,2
-SYCAMORE VIEW RD,9,2,2,City of Memphis,False,45.0,7
 RALEIGH LAGRANGE RD,8,3,2,City of Memphis,False,45.0,2
 INTERSTATE 240 W,8,2,2,Interstate (TDOT),False,65.0,3
 AMERICAN WAY,8,2,2,City of Memphis,False,45.0,5
@@ -157,6 +157,7 @@ GRACELAND DR,2,0,0,City of Memphis,False,30.0,2
 GRUBER DR,2,0,0,City of Memphis,False,30.0,2
 US HIGHWAY 64,2,0,1,TDOT state route,False,45.0,5
 KIMBALL AVE,2,0,1,City of Memphis,False,40.0,2
+GREY RD,2,0,0,City of Memphis,False,30.0,2
 DEADRICK AVE,2,0,2,City of Memphis,False,35.0,2
 MYNDERS AVE,2,0,0,City of Memphis,False,30.0,2
 LESTER ST,2,0,1,City of Memphis,False,30.0,2
@@ -363,7 +364,6 @@ HUNTER AVE,1,0,0,City of Memphis,False,30.0,2
 ARRINGTON AVE,1,0,0,City of Memphis,False,30.0,2
 BLANCHARD RD,1,0,0,City of Memphis,False,30.0,2
 PRATT ST,1,0,0,City of Memphis,False,30.0,2
-GREY RD,1,0,0,City of Memphis,False,30.0,2
 N US HIGHWAY 51,1,0,0,City of Memphis,False,55.0,2
 KINARD CV,1,0,0,City of Memphis,False,25.0,2
 RALSTON AVE,1,0,0,City of Memphis,False,30.0,2
