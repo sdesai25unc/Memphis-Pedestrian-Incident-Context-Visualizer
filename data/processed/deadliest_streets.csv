@@ -17,7 +17,7 @@ MILLBRANCH RD,15,0,5,City of Memphis,False,40.0,4
 N WATKINS ST,14,1,1,City of Memphis,False,40.0,5
 MADISON AVE,13,3,1,City of Memphis,True,35.0,3
 CHELSEA AVE,13,2,3,City of Memphis,True,40.0,4
-E BROOKS RD,11,3,3,City of Memphis,True,45.0,7
+E BROOKS RD,12,3,4,City of Memphis,True,45.0,5
 S PERKINS RD,11,2,2,City of Memphis,False,40.0,7
 S PARKWAY E,11,2,4,City of Memphis,True,35.0,5
 SYCAMORE VIEW RD,10,2,3,City of Memphis,False,45.0,7
@@ -105,6 +105,7 @@ N HIGHLAND ST,3,0,2,TDOT,True,40.0,5
 VOLLINTINE AVE,3,0,0,City of Memphis,False,35.0,4
 CHIMNEYROCK BLVD,3,0,0,City of Memphis,False,30.0,2
 FORD RD,3,0,0,City of Memphis,True,35.0,2
+AUSTIN PEAY HWY,3,0,0,TDOT,False,45.0,7
 E PERSON AVE,3,0,0,City of Memphis,False,35.0,4
 HESTER RD,3,0,0,City of Memphis,True,35.0,2
 E E H CRUMP BLVD,3,0,2,TDOT,True,40.0,6
@@ -129,6 +130,7 @@ S LAUDERDALE ST,2,0,1,TDOT,True,30.0,2
 LOONEY AVE,2,0,0,City of Memphis,False,30.0,2
 GREENLAW AVE,2,0,0,City of Memphis,False,30.0,2
 COLEMAN RD,2,0,0,TDOT,True,45.0,7
+OAKWOOD ST,2,0,2,City of Memphis,False,30.0,2
 MONROE AVE,2,0,0,City of Memphis,False,30.0,2
 N MAIN ST,2,0,0,City of Memphis,False,35.0,1
 AUSTIN PEAY HWY TO JAMES RD,2,0,1,TDOT,False,45.0,1
@@ -170,7 +172,6 @@ TRINITY RD,2,0,0,City of Memphis,False,40.0,3
 S FRONT ST,2,0,0,City of Memphis,False,30.0,4
 TENNYSON RD,2,0,0,City of Memphis,False,30.0,2
 MADEWELL DR,2,0,1,City of Memphis,False,30.0,2
-AUSTIN PEAY HWY,2,0,0,TDOT,False,45.0,3
 HOMER ST,2,0,0,City of Memphis,False,30.0,2
 WALKER AVE,2,0,0,City of Memphis,False,35.0,2
 NEW ALLEN RD,2,0,2,City of Memphis,False,50.0,2
@@ -247,7 +248,6 @@ S WALNUT BEND RD,1,0,1,TDOT,False,30.0,2
 WEAKLEY AVE,1,0,0,City of Memphis,False,30.0,2
 WINCHESTER RD TO CARGO RD,1,0,0,City of Memphis,False,30.0,1
 LINDEN AVE,1,0,0,TDOT,False,30.0,2
-OAKWOOD ST,1,0,1,City of Memphis,False,30.0,2
 S WALDRAN BLVD,1,0,0,City of Memphis,False,30.0,2
 N BELVEDERE BLVD,1,0,1,City of Memphis,False,35.0,2
 ETHLYN AVE,1,0,0,City of Memphis,False,30.0,2
@@ -356,6 +356,7 @@ S FOURTH ST,1,0,0,TDOT,False,30.0,3
 VANDALIA ST,1,0,0,City of Memphis,False,30.0,2
 ESTATE DR,1,0,0,City of Memphis,False,30.0,5
 PINEBROOK DR,1,0,1,City of Memphis,False,30.0,2
+TCHULAHOMA RD,1,0,0,City of Memphis,False,35.0,2
 MILLINGTON ST,1,0,0,City of Memphis,False,40.0,2
 HELENE RD,1,0,0,City of Memphis,False,30.0,2
 E FAIRWAY AVE,1,0,1,City of Memphis,False,30.0,2
