@@ -160,6 +160,7 @@ GRACELAND DR,2,0,0,City of Memphis,False,30.0,2
 GRUBER DR,2,0,0,City of Memphis,False,30.0,2
 US HIGHWAY 64,2,0,1,TDOT,False,45.0,5
 KIMBALL AVE,2,0,1,City of Memphis,False,40.0,2
+CHANNEL AVE,2,0,0,City of Memphis,False,40.0,2
 GREY RD,2,0,0,City of Memphis,False,30.0,2
 DEADRICK AVE,2,0,2,City of Memphis,False,35.0,2
 MYNDERS AVE,2,0,0,City of Memphis,False,30.0,2
@@ -356,6 +357,7 @@ S FOURTH ST,1,0,0,TDOT,False,30.0,3
 VANDALIA ST,1,0,0,City of Memphis,False,30.0,2
 ESTATE DR,1,0,0,City of Memphis,False,30.0,5
 PINEBROOK DR,1,0,1,City of Memphis,False,30.0,2
+MATTHEWS AVE,1,0,1,City of Memphis,False,30.0,2
 TCHULAHOMA RD,1,0,0,City of Memphis,False,35.0,2
 MILLINGTON ST,1,0,0,City of Memphis,False,40.0,2
 HELENE RD,1,0,0,City of Memphis,False,30.0,2
@@ -533,7 +535,6 @@ KNEY ST,1,0,0,City of Memphis,False,30.0,2
 PINE RIDGE LN,1,0,0,City of Memphis,False,30.0,2
 JOEL AVE,1,0,1,City of Memphis,False,30.0,2
 S COX ST,1,0,0,City of Memphis,False,30.0,2
-CHANNEL AVE,1,0,0,City of Memphis,False,40.0,2
 DARROW ST,1,0,0,City of Memphis,False,30.0,2
 ROSS RD,1,0,1,City of Memphis,False,35.0,2
 CARRIER ST,1,0,0,City of Memphis,False,30.0,2
