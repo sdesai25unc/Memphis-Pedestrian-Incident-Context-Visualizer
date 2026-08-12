@@ -58,6 +58,7 @@ BEALE ST,5,0,1,TDOT,True,30.0,2
 PENDLETON ST,5,0,1,City of Memphis,True,40.0,4
 NORRIS RD,5,0,2,TDOT,True,40.0,4
 N SECOND ST,5,0,1,TDOT,True,35.0,3
+INTERSTATE 40 E,4,2,0,City of Memphis,False,65.0,3
 EGYPT CENTRAL RD,4,2,0,City of Memphis,False,45.0,2
 N B B KING BLVD,4,1,0,TDOT,False,35.0,3
 S MCLEAN BLVD,4,1,2,TDOT,True,35.0,4
@@ -75,7 +76,6 @@ PEABODY PL,4,0,1,TDOT,True,30.0,4
 RIDGEWAY RD,4,0,0,City of Memphis,False,40.0,5
 W RAINES RD,4,0,0,City of Memphis,True,40.0,5
 SAM COOPER BLVD,3,2,1,City of Memphis,True,40.0,6
-INTERSTATE 40 E,3,2,0,City of Memphis,False,65.0,4
 S WHITE STATION RD,3,2,0,City of Memphis,True,40.0,4
 OVERTON CROSSING ST,3,1,0,City of Memphis,False,40.0,5
 YOUNG AVE,3,1,1,City of Memphis,False,35.0,2
