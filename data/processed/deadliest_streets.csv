@@ -2,7 +2,7 @@ Street_Name,Total_Crashes,Fatal_Crashes,Serious_Injuries,Dominant_Jurisdiction,M
 POPLAR AVE,48,9,5,City of Memphis,True,40.0,7
 UNION AVE,39,9,11,TDOT,True,35.0,6
 LAMAR AVE,33,7,9,TDOT,False,40.0,7
-WINCHESTER RD,29,5,6,City of Memphis,False,45.0,7
+WINCHESTER RD,30,5,6,City of Memphis,False,45.0,7
 PARK AVE,25,4,7,City of Memphis,True,40.0,4
 E SHELBY DR,21,3,4,TDOT,True,45.0,7
 JACKSON AVE,20,2,3,TDOT,True,40.0,4
