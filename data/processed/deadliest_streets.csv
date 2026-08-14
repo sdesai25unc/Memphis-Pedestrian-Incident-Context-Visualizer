@@ -2,15 +2,15 @@ Street_Name,Total_Crashes,Fatal_Crashes,Serious_Injuries,Dominant_Jurisdiction,M
 POPLAR AVE,48,9,5,City of Memphis,True,40.0,7
 UNION AVE,39,9,11,TDOT,True,35.0,6
 LAMAR AVE,33,7,9,TDOT,False,40.0,7
-WINCHESTER RD,30,5,6,City of Memphis,False,45.0,7
+WINCHESTER RD,31,5,7,City of Memphis,False,45.0,7
 PARK AVE,25,4,7,City of Memphis,True,40.0,4
 E SHELBY DR,21,3,4,TDOT,True,45.0,7
 JACKSON AVE,20,2,3,TDOT,True,40.0,4
 SUMMER AVE,19,4,5,TDOT,True,40.0,7
 S THIRD ST,18,7,3,TDOT,True,45.0,7
 E RAINES RD,18,3,3,City of Memphis,True,40.0,5
+ELVIS PRESLEY BLVD,18,2,3,TDOT,True,40.0,5
 AIRWAYS BLVD,17,3,4,TDOT,True,40.0,7
-ELVIS PRESLEY BLVD,17,2,3,TDOT,True,40.0,5
 GETWELL RD,16,2,6,City of Memphis,True,40.0,7
 KNIGHT ARNOLD RD,16,2,4,City of Memphis,False,40.0,4
 MILLBRANCH RD,15,0,5,City of Memphis,False,40.0,4
@@ -20,9 +20,10 @@ MADISON AVE,13,3,1,City of Memphis,True,35.0,3
 E BROOKS RD,12,3,4,City of Memphis,True,45.0,5
 S PERKINS RD,11,2,2,City of Memphis,False,40.0,7
 S PARKWAY E,11,2,4,City of Memphis,True,35.0,5
+N HOLLYWOOD ST,10,4,0,City of Memphis,True,40.0,2
 SYCAMORE VIEW RD,10,2,3,City of Memphis,False,45.0,7
 FRAYSER BLVD,10,1,3,City of Memphis,False,40.0,4
-N HOLLYWOOD ST,9,4,0,City of Memphis,True,40.0,2
+RALEIGH MILLINGTON RD,8,3,2,City of Memphis,False,40.0,4
 RALEIGH LAGRANGE RD,8,3,2,City of Memphis,False,45.0,2
 INTERSTATE 240 W,8,2,2,City of Memphis,True,65.0,3
 AMERICAN WAY,8,2,2,City of Memphis,True,45.0,5
@@ -31,7 +32,6 @@ QUINCE RD,8,1,3,City of Memphis,False,40.0,4
 WHITNEY AVE,8,1,2,City of Memphis,True,40.0,2
 THOMAS ST,8,0,1,TDOT,True,40.0,2
 KERR AVE,8,0,1,TDOT,True,35.0,3
-RALEIGH MILLINGTON RD,7,3,2,City of Memphis,False,40.0,4
 PRESCOTT RD,7,2,2,City of Memphis,False,40.0,4
 MACON RD,7,1,3,City of Memphis,False,40.0,4
 RIVERDALE RD,7,1,3,City of Memphis,True,45.0,6
