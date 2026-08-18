@@ -65,20 +65,20 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1372) | 1022 (74.5%) | 350 (25.5%) | (in City) | (in City) |
-| NEW segment, surface (n=1339) | 1066 (79.6%) | 273 (20.4%) | 24 sep. | 9 sep. |
+| OLD distance (n=1373) | 1022 (74.4%) | 351 (25.6%) | (in City) | (in City) |
+| NEW segment, surface (n=1340) | 1066 (79.6%) | 274 (20.4%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=181) | 126 (69.6%) | 55 (30.4%) | (in City) | (in City) |
-| NEW segment, surface (n=169) | 122 (72.2%) | 47 (27.8%) | 10 sep. | 2 sep. |
+| OLD distance (n=182) | 126 (69.2%) | 56 (30.8%) | (in City) | (in City) |
+| NEW segment, surface (n=170) | 122 (71.8%) | 48 (28.2%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 428 of 1372** (reconciles: sum still 1372; fatal 181).
+**Crashes that changed label: 429 of 1373** (reconciles: sum still 1373; fatal 182).
 
 ```
-  TDOT               -> TDOT state route   : 221
+  TDOT               -> TDOT state route   : 222
   TDOT               -> City of Memphis    : 122
   City of Memphis    -> TDOT state route   : 52
   City of Memphis    -> Interstate (TDOT)  : 21
@@ -92,7 +92,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | street | OLD City/TDOT | NEW City/TDOT/Int/Ramp |
 |---|---|---|
 | POPLAR | 29/19 | 28/20/0/0 |
-| LAMAR | 3/30 | 0/33/0/0 |
+| LAMAR | 3/31 | 0/34/0/0 |
 | SUMMER | 6/14 | 1/19/0/0 |
 | UNION | 6/33 | 2/37/0/0 |
 | JACKSON | 3/17 | 1/19/0/0 |
@@ -108,7 +108,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
   300953626 JACKSON AVE          ov10=0.39 oldDistToSR=2.8m  (35.17769,-89.93764)
 ```
 
-**Reframe check:** new surface split City 79.6% vs TDOT 20.4% — City still owns the majority of surface crashes; fatal surface City 72.2% vs TDOT 27.8%.
+**Reframe check:** new surface split City 79.6% vs TDOT 20.4% — City still owns the majority of surface crashes; fatal surface City 71.8% vs TDOT 28.2%.
 
 ## Phase 4 — display layer
 

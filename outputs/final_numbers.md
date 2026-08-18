@@ -18,23 +18,23 @@
 
 ## Final crash split
 
-In-Memphis crashes: **1372** (181 fatal) = surface **1335** + limited-access **37**.
+In-Memphis crashes: **1373** (182 fatal) = surface **1336** + limited-access **37**.
 
 **Surface City vs TDOT — point estimate (corner crashes as city) + range upper bound:**
 
 | | City | TDOT |
 |---|---|---|
-| ALL — point (1335) | 1061 (79.5%) | 274 (20.5%) |
-| ALL — upper (+62 corner) | 999 (74.8%) | 336 (25.2%) |
-| FATAL — point (167) | 119 (71.3%) | 48 (28.7%) |
-| FATAL — upper (+5 corner) | 114 (68.3%) | 53 (31.7%) |
+| ALL — point (1336) | 1061 (79.4%) | 275 (20.6%) |
+| ALL — upper (+62 corner) | 999 (74.8%) | 337 (25.2%) |
+| FATAL — point (168) | 119 (70.8%) | 49 (29.2%) |
+| FATAL — upper (+5 corner) | 114 (67.9%) | 54 (32.1%) |
 
 **Limited-access (TDOT)** — separate line: **37 crashes (14 fatal)** = Interstate 24 / ramp 9 / Sam Cooper 4.
 
-**FINAL RANGE (lead with this):** surface **City 74.8%–79.5% / TDOT 20.5%–25.2%** (all crashes); **City 68.3%–71.3% / TDOT 28.7%–31.7%** (fatal). Plus limited-access 37 crashes (14 fatal), separate.
+**FINAL RANGE (lead with this):** surface **City 74.8%–79.4% / TDOT 20.6%–25.2%** (all crashes); **City 67.9%–70.8% / TDOT 29.2%–32.1%** (fatal). Plus limited-access 37 crashes (14 fatal), separate.
 
 ## Reconciliation
 
-- surface 1335 + limited-access 37 = **1372** (expected 1372) ✓
-- surface fatal 167 + limited-access fatal 14 = **181** (expected 181) ✓
+- surface 1336 + limited-access 37 = **1373** (expected 1373) ✓
+- surface fatal 168 + limited-access fatal 14 = **182** (expected 182) ✓
 - category changes vs seg-method (script 14): **1** City→TDOT (completeness force-rule), **4** City→limited-access (Sam Cooper). (Interstate-ramp crashes were only relabeled 'Interstate ramp (TDOT)' — same category, not a move.)
