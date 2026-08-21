@@ -14,9 +14,9 @@ AIRWAYS BLVD,17,3,4,TDOT,True,40.0,7
 GETWELL RD,16,2,6,City of Memphis,True,40.0,7
 KNIGHT ARNOLD RD,16,2,4,City of Memphis,False,40.0,4
 MILLBRANCH RD,15,0,5,City of Memphis,False,40.0,4
+MADISON AVE,14,3,1,City of Memphis,True,35.0,3
 CHELSEA AVE,14,2,4,City of Memphis,True,40.0,4
 N WATKINS ST,14,1,1,City of Memphis,False,40.0,5
-MADISON AVE,13,3,1,City of Memphis,True,35.0,3
 E BROOKS RD,12,3,4,City of Memphis,True,45.0,5
 S PERKINS RD,11,2,2,City of Memphis,False,40.0,7
 S PARKWAY E,11,2,4,City of Memphis,True,35.0,5
@@ -120,6 +120,7 @@ N HOLMES ST,2,1,1,City of Memphis,False,35.0,2
 NEW TCHULAHOMA RD,2,1,0,City of Memphis,False,45.0,4
 DECATUR ST,2,1,0,City of Memphis,False,30.0,2
 HUDSON ST,2,1,0,City of Memphis,False,30.0,2
+DEADRICK AVE,2,1,1,City of Memphis,False,35.0,2
 W LEVI RD,2,1,1,City of Memphis,False,35.0,2
 ELDRIDGE AVE,2,1,0,City of Memphis,False,30.0,2
 N BELLEVUE BLVD,2,1,0,City of Memphis,True,35.0,2
@@ -162,7 +163,6 @@ US HIGHWAY 64,2,0,1,TDOT,False,45.0,5
 KIMBALL AVE,2,0,1,City of Memphis,False,40.0,2
 CHANNEL AVE,2,0,0,City of Memphis,False,40.0,2
 GREY RD,2,0,0,City of Memphis,False,30.0,2
-DEADRICK AVE,2,0,2,City of Memphis,False,35.0,2
 MYNDERS AVE,2,0,0,City of Memphis,False,30.0,2
 LESTER ST,2,0,1,City of Memphis,True,30.0,2
 FARMVILLE AVE,2,0,1,City of Memphis,False,30.0,2
@@ -361,6 +361,7 @@ WHITTEN RD TO 40W,1,0,0,City of Memphis,False,45.0,1
 MATTHEWS AVE,1,0,1,City of Memphis,False,30.0,2
 SINCLAIR ST,1,0,0,City of Memphis,False,30.0,2
 TCHULAHOMA RD,1,0,0,City of Memphis,False,35.0,2
+NEELY RD,1,0,0,City of Memphis,False,35.0,2
 MILLINGTON ST,1,0,0,City of Memphis,False,40.0,2
 HELENE RD,1,0,0,City of Memphis,False,30.0,2
 E FAIRWAY AVE,1,0,1,City of Memphis,False,30.0,2
