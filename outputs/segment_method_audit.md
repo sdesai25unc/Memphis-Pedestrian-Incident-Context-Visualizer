@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1375) | 1024 (74.5%) | 351 (25.5%) | (in City) | (in City) |
-| NEW segment, surface (n=1342) | 1068 (79.6%) | 274 (20.4%) | 24 sep. | 9 sep. |
+| OLD distance (n=1377) | 1025 (74.4%) | 352 (25.6%) | (in City) | (in City) |
+| NEW segment, surface (n=1344) | 1069 (79.5%) | 275 (20.5%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
@@ -75,10 +75,10 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=183) | 127 (69.4%) | 56 (30.6%) | (in City) | (in City) |
 | NEW segment, surface (n=171) | 123 (71.9%) | 48 (28.1%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 429 of 1375** (reconciles: sum still 1375; fatal 183).
+**Crashes that changed label: 430 of 1377** (reconciles: sum still 1377; fatal 183).
 
 ```
-  TDOT               -> TDOT state route   : 222
+  TDOT               -> TDOT state route   : 223
   TDOT               -> City of Memphis    : 122
   City of Memphis    -> TDOT state route   : 52
   City of Memphis    -> Interstate (TDOT)  : 21
@@ -93,7 +93,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 |---|---|---|
 | POPLAR | 29/19 | 28/20/0/0 |
 | LAMAR | 3/31 | 0/34/0/0 |
-| SUMMER | 6/14 | 1/19/0/0 |
+| SUMMER | 6/15 | 1/20/0/0 |
 | UNION | 6/33 | 2/37/0/0 |
 | JACKSON | 3/17 | 1/19/0/0 |
 | PARK | 28/3 | 31/0/0/0 |
@@ -108,7 +108,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
   300953626 JACKSON AVE          ov10=0.39 oldDistToSR=2.8m  (35.17769,-89.93764)
 ```
 
-**Reframe check:** new surface split City 79.6% vs TDOT 20.4% — City still owns the majority of surface crashes; fatal surface City 71.9% vs TDOT 28.1%.
+**Reframe check:** new surface split City 79.5% vs TDOT 20.5% — City still owns the majority of surface crashes; fatal surface City 71.9% vs TDOT 28.1%.
 
 ## Phase 4 — display layer
 
