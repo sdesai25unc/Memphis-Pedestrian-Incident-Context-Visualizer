@@ -17,7 +17,7 @@ MILLBRANCH RD,15,0,5,City of Memphis,False,40.0,4
 MADISON AVE,14,3,1,City of Memphis,True,35.0,3
 CHELSEA AVE,14,2,4,City of Memphis,True,40.0,4
 N WATKINS ST,14,1,1,City of Memphis,False,40.0,5
-E BROOKS RD,12,3,4,City of Memphis,True,45.0,5
+E BROOKS RD,13,3,5,City of Memphis,True,45.0,5
 S PERKINS RD,11,2,2,City of Memphis,False,40.0,7
 S PARKWAY E,11,2,4,City of Memphis,True,35.0,5
 N HOLLYWOOD ST,10,4,0,City of Memphis,True,40.0,2
@@ -39,6 +39,7 @@ E HOLMES RD,7,1,2,City of Memphis,True,40.0,2
 SOUTHERN AVE,7,0,0,City of Memphis,False,35.0,2
 ADAMS AVE,7,0,4,City of Memphis,True,30.0,2
 S MENDENHALL RD,7,0,2,City of Memphis,False,40.0,7
+WALNUT GROVE RD,6,2,2,TDOT,True,35.0,5
 E MALLORY AVE,6,2,0,City of Memphis,False,35.0,2
 S HIGHLAND ST,6,2,0,City of Memphis,False,35.0,5
 JEFFERSON AVE,6,1,0,City of Memphis,True,40.0,4
@@ -48,7 +49,6 @@ S BELLEVUE BLVD,6,0,1,TDOT,True,35.0,4
 INTERSTATE 40 W,5,2,1,City of Memphis,False,65.0,4
 INTERSTATE 240 E,5,2,1,City of Memphis,True,65.0,3
 ALLEY,5,2,0,City of Memphis,False,25.0,1
-WALNUT GROVE RD,5,1,2,TDOT,True,35.0,5
 NATIONAL ST,5,1,3,City of Memphis,False,40.0,4
 DR MARTIN LUTHER KING JR AVE,5,1,0,TDOT,False,35.0,2
 NEW COVINGTON PIKE,5,0,1,City of Memphis,False,45.0,5
@@ -363,6 +363,7 @@ SINCLAIR ST,1,0,0,City of Memphis,False,30.0,2
 TCHULAHOMA RD,1,0,0,City of Memphis,False,35.0,2
 NEELY RD,1,0,0,City of Memphis,False,35.0,2
 N MCNEIL ST,1,0,0,City of Memphis,False,30.0,2
+HILLBROOK RD,1,0,0,City of Memphis,False,30.0,2
 MILLINGTON ST,1,0,0,City of Memphis,False,40.0,2
 HELENE RD,1,0,0,City of Memphis,False,30.0,2
 E FAIRWAY AVE,1,0,1,City of Memphis,False,30.0,2
