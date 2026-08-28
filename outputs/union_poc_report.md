@@ -16,9 +16,9 @@
 
 ## 3. Union crashes (within 30 m of centerline)
 
-- Total: **45** (9 fatal)  *(deadliest-list anchor ≈ 36/8; the 30 m buffer catches a few more than the nearest-street assignment)*.
+- Total: **46** (9 fatal)  *(deadliest-list anchor ≈ 36/8; the 30 m buffer catches a few more than the nearest-street assignment)*.
 - **Crossing-relevant (On Roadway / In Crosswalk): 40** (8 fatal) — the headline set.
-- Non-crossing (Outside Traffic / Not on Roadway / Unknown): 5 (1 fatal) — reported, excluded from the distance stat.
+- Non-crossing (Outside Traffic / Not on Roadway / Unknown): 6 (1 fatal) — reported, excluded from the distance stat.
 
 ## 4. Distance from a crossing-relevant crash to the nearest safe crossing (along-corridor)
 
