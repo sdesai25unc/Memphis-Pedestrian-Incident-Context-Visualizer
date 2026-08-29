@@ -98,6 +98,7 @@ DEXTER RD,3,0,1,City of Memphis,False,35.0,4
 DUNN AVE,3,0,0,City of Memphis,False,30.0,2
 N AVALON ST,3,0,1,City of Memphis,False,35.0,2
 N MANASSAS ST,3,0,0,City of Memphis,False,30.0,4
+STATE ROUTE 385 E,3,0,2,TDOT state route,False,65.0,3
 PATTERSON ST,3,0,0,City of Memphis,False,30.0,2
 KIRBY PKWY,3,0,1,City of Memphis,False,45.0,6
 MARSH AVE,3,0,0,City of Memphis,False,30.0,2
@@ -144,7 +145,6 @@ S GOODLETT ST,2,0,0,City of Memphis,False,40.0,4
 PERSHING AVE,2,0,1,City of Memphis,False,30.0,2
 ELLISTON RD,2,0,2,City of Memphis,False,35.0,2
 GAYOSO AVE,2,0,1,TDOT state route,True,30.0,1
-STATE ROUTE 385 E,2,0,2,TDOT state route,False,65.0,3
 PERKINS ROAD EXT,2,0,0,City of Memphis,False,35.0,5
 STAGE JAMES RD,2,0,0,City of Memphis,False,45.0,7
 HAYNES ST,2,0,0,City of Memphis,False,30.0,2
