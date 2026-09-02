@@ -54,6 +54,7 @@ DR MARTIN LUTHER KING JR AVE,5,1,0,TDOT state route,False,35.0,2
 NEW COVINGTON PIKE,5,0,1,TDOT state route,False,45.0,5
 DELLWOOD AVE,5,0,2,City of Memphis,False,35.0,2
 COVINGTON PIKE,5,0,1,TDOT state route,False,40.0,5
+SHELBY OAKS DR,5,0,3,City of Memphis,False,40.0,4
 BEALE ST,5,0,1,City of Memphis,False,30.0,2
 PENDLETON ST,5,0,1,City of Memphis,False,40.0,4
 NORRIS RD,5,0,2,City of Memphis,False,40.0,4
@@ -73,7 +74,6 @@ SEMMES ST,4,0,0,City of Memphis,False,30.0,5
 E PARKWAY N,4,0,1,TDOT state route,False,40.0,3
 E ALCY RD,4,0,0,City of Memphis,False,35.0,2
 PEABODY PL,4,0,1,City of Memphis,False,30.0,4
-SHELBY OAKS DR,4,0,3,City of Memphis,False,40.0,4
 RIDGEWAY RD,4,0,0,City of Memphis,False,40.0,5
 W RAINES RD,4,0,0,City of Memphis,False,40.0,5
 SAM COOPER BLVD,3,2,1,City of Memphis,False,40.0,6
@@ -364,6 +364,7 @@ TCHULAHOMA RD,1,0,0,City of Memphis,False,35.0,2
 NEELY RD,1,0,0,City of Memphis,False,35.0,2
 DEER TRAIL LN,1,0,0,City of Memphis,False,30.0,2
 COUNTRY VILLAGE DR,1,0,0,City of Memphis,False,30.0,2
+WINDWARD DR,1,0,0,City of Memphis,False,30.0,2
 N MCNEIL ST,1,0,0,City of Memphis,False,30.0,2
 MCCLURE RD,1,0,0,City of Memphis,False,35.0,2
 HILLBROOK RD,1,0,0,City of Memphis,False,30.0,2
