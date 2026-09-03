@@ -5,8 +5,8 @@ LAMAR AVE,34,8,9,TDOT state route,False,40.0,7
 WINCHESTER RD,31,5,7,City of Memphis,False,45.0,7
 PARK AVE,25,4,7,City of Memphis,False,40.0,4
 E SHELBY DR,21,3,4,TDOT state route,False,45.0,7
+JACKSON AVE,21,2,4,TDOT state route,False,40.0,4
 SUMMER AVE,20,4,5,TDOT state route,False,40.0,7
-JACKSON AVE,20,2,3,TDOT state route,False,40.0,4
 S THIRD ST,18,7,3,TDOT state route,False,45.0,7
 E RAINES RD,18,3,3,City of Memphis,False,40.0,5
 ELVIS PRESLEY BLVD,18,2,3,TDOT state route,False,40.0,5
@@ -51,6 +51,7 @@ INTERSTATE 240 E,5,2,1,Interstate (TDOT),False,65.0,3
 ALLEY,5,2,0,City of Memphis,False,25.0,1
 NATIONAL ST,5,1,3,City of Memphis,False,40.0,4
 DR MARTIN LUTHER KING JR AVE,5,1,0,TDOT state route,False,35.0,2
+YALE RD,5,1,1,City of Memphis,False,40.0,5
 NEW COVINGTON PIKE,5,0,1,TDOT state route,False,45.0,5
 DELLWOOD AVE,5,0,2,City of Memphis,False,35.0,2
 COVINGTON PIKE,5,0,1,TDOT state route,False,40.0,5
@@ -63,7 +64,6 @@ INTERSTATE 40 E,4,2,0,Interstate (TDOT),False,65.0,3
 EGYPT CENTRAL RD,4,2,0,City of Memphis,False,45.0,2
 N B B KING BLVD,4,1,0,TDOT state route,False,35.0,3
 S MCLEAN BLVD,4,1,2,City of Memphis,False,35.0,4
-YALE RD,4,1,1,City of Memphis,False,40.0,5
 S PAULINE ST,4,0,1,City of Memphis,False,30.0,4
 PRIVATE DR,4,0,0,City of Memphis,False,30.0,2
 CARNES AVE,4,0,2,City of Memphis,True,30.0,2

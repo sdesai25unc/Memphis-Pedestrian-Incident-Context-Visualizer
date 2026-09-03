@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1390) | 1035 (74.5%) | 355 (25.5%) | (in City) | (in City) |
-| NEW segment, surface (n=1357) | 1080 (79.6%) | 277 (20.4%) | 24 sep. | 9 sep. |
+| OLD distance (n=1392) | 1035 (74.4%) | 357 (25.6%) | (in City) | (in City) |
+| NEW segment, surface (n=1359) | 1081 (79.5%) | 278 (20.5%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
@@ -75,11 +75,11 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=184) | 128 (69.6%) | 56 (30.4%) | (in City) | (in City) |
 | NEW segment, surface (n=172) | 124 (72.1%) | 48 (27.9%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 433 of 1390** (reconciles: sum still 1390; fatal 184).
+**Crashes that changed label: 435 of 1392** (reconciles: sum still 1392; fatal 184).
 
 ```
-  TDOT               -> TDOT state route   : 225
-  TDOT               -> City of Memphis    : 123
+  TDOT               -> TDOT state route   : 226
+  TDOT               -> City of Memphis    : 124
   City of Memphis    -> TDOT state route   : 52
   City of Memphis    -> Interstate (TDOT)  : 21
   City of Memphis    -> Interstate ramp    : 5
@@ -95,20 +95,20 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | LAMAR | 3/31 | 0/34/0/0 |
 | SUMMER | 6/15 | 1/20/0/0 |
 | UNION | 6/34 | 2/38/0/0 |
-| JACKSON | 3/17 | 1/19/0/0 |
+| JACKSON | 3/18 | 1/20/0/0 |
 | PARK | 28/3 | 31/0/0/0 |
 | GETWELL | 15/4 | 11/8/0/0 |
 | WINCHESTER | 32/0 | 31/0/0/1 |
 | AIRWAYS | 8/9 | 12/5/0/0 |
 
-**Join-quality watchlist** — 3 of the 123 TDOT→City crashes sit on a segment that overlaps a state route ≥30% yet was tagged City (possible under-tagged carriageway / name gap — eyeball these; the rest are genuine city cross-streets near intersections):
+**Join-quality watchlist** — 3 of the 124 TDOT→City crashes sit on a segment that overlaps a state route ≥30% yet was tagged City (possible under-tagged carriageway / name gap — eyeball these; the rest are genuine city cross-streets near intersections):
 ```
   300968447 E RAINES RD          ov10=1.00 oldDistToSR=3.5m  (35.03850,-89.91717)
   300981287 N BELLEVUE BLVD      ov10=0.90 oldDistToSR=10.5m  (35.15429,-90.01961)
   300953626 JACKSON AVE          ov10=0.39 oldDistToSR=2.8m  (35.17769,-89.93764)
 ```
 
-**Reframe check:** new surface split City 79.6% vs TDOT 20.4% — City still owns the majority of surface crashes; fatal surface City 72.1% vs TDOT 27.9%.
+**Reframe check:** new surface split City 79.5% vs TDOT 20.5% — City still owns the majority of surface crashes; fatal surface City 72.1% vs TDOT 27.9%.
 
 ## Phase 4 — display layer
 
