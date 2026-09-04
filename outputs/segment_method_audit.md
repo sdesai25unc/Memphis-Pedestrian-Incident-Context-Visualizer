@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1392) | 1035 (74.4%) | 357 (25.6%) | (in City) | (in City) |
-| NEW segment, surface (n=1359) | 1081 (79.5%) | 278 (20.5%) | 24 sep. | 9 sep. |
+| OLD distance (n=1393) | 1036 (74.4%) | 357 (25.6%) | (in City) | (in City) |
+| NEW segment, surface (n=1360) | 1082 (79.6%) | 278 (20.4%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
@@ -75,7 +75,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=184) | 128 (69.6%) | 56 (30.4%) | (in City) | (in City) |
 | NEW segment, surface (n=172) | 124 (72.1%) | 48 (27.9%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 435 of 1392** (reconciles: sum still 1392; fatal 184).
+**Crashes that changed label: 435 of 1393** (reconciles: sum still 1393; fatal 184).
 
 ```
   TDOT               -> TDOT state route   : 226
@@ -108,7 +108,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
   300953626 JACKSON AVE          ov10=0.39 oldDistToSR=2.8m  (35.17769,-89.93764)
 ```
 
-**Reframe check:** new surface split City 79.5% vs TDOT 20.5% — City still owns the majority of surface crashes; fatal surface City 72.1% vs TDOT 27.9%.
+**Reframe check:** new surface split City 79.6% vs TDOT 20.4% — City still owns the majority of surface crashes; fatal surface City 72.1% vs TDOT 27.9%.
 
 ## Phase 4 — display layer
 

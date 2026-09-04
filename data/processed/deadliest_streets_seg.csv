@@ -161,6 +161,7 @@ GRACELAND DR,2,0,0,City of Memphis,False,30.0,2
 GRUBER DR,2,0,0,City of Memphis,False,30.0,2
 US HIGHWAY 64,2,0,1,TDOT state route,False,45.0,5
 KIMBALL AVE,2,0,1,City of Memphis,False,40.0,2
+S FOURTH ST,2,0,1,City of Memphis,False,30.0,3
 CHANNEL AVE,2,0,0,City of Memphis,False,40.0,2
 GREY RD,2,0,0,City of Memphis,False,30.0,2
 MYNDERS AVE,2,0,0,City of Memphis,False,30.0,2
@@ -353,7 +354,6 @@ WORTHINGTON ST,1,0,1,City of Memphis,False,30.0,2
 SHELLEY RENEE LN,1,0,0,City of Memphis,False,30.0,2
 ROBIN HOOD LN,1,0,1,City of Memphis,False,35.0,2
 WALES AVE,1,0,0,City of Memphis,False,35.0,2
-S FOURTH ST,1,0,0,City of Memphis,False,30.0,3
 VANDALIA ST,1,0,0,City of Memphis,False,30.0,2
 ESTATE DR,1,0,0,City of Memphis,False,30.0,5
 PINEBROOK DR,1,0,1,City of Memphis,False,30.0,2
