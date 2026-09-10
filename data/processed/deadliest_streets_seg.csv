@@ -1,7 +1,7 @@
 Street_Name,Total_Crashes,Fatal_Crashes,Serious_Injuries,Dominant_Jurisdiction,Mixed_Jurisdiction,SPDLIMIT,LANES
 POPLAR AVE,49,9,5,City of Memphis,True,40.0,7
 UNION AVE,40,9,11,TDOT state route,False,35.0,6
-LAMAR AVE,34,8,9,TDOT state route,False,40.0,7
+LAMAR AVE,35,8,9,TDOT state route,False,40.0,7
 WINCHESTER RD,31,5,7,City of Memphis,False,45.0,7
 PARK AVE,25,4,7,City of Memphis,False,40.0,4
 E SHELBY DR,21,3,4,TDOT state route,False,45.0,7
@@ -39,13 +39,13 @@ RIVERDALE RD,7,1,3,City of Memphis,True,45.0,6
 SOUTHERN AVE,7,0,0,City of Memphis,False,35.0,2
 ADAMS AVE,7,0,4,City of Memphis,False,30.0,2
 S MENDENHALL RD,7,0,2,City of Memphis,False,40.0,7
+S BELLEVUE BLVD,7,0,1,TDOT state route,False,35.0,4
 WALNUT GROVE RD,6,2,2,TDOT state route,True,35.0,5
 E MALLORY AVE,6,2,0,City of Memphis,False,35.0,2
 S HIGHLAND ST,6,2,0,City of Memphis,False,35.0,5
 JEFFERSON AVE,6,1,0,City of Memphis,False,40.0,4
 N DUNLAP ST,6,1,0,City of Memphis,False,30.0,2
 MOUNT MORIAH ROAD EXT,6,0,1,City of Memphis,False,40.0,5
-S BELLEVUE BLVD,6,0,1,TDOT state route,False,35.0,4
 INTERSTATE 40 W,5,2,1,Interstate (TDOT),False,65.0,4
 INTERSTATE 240 E,5,2,1,Interstate (TDOT),False,65.0,3
 ALLEY,5,2,0,City of Memphis,False,25.0,1
@@ -64,6 +64,7 @@ INTERSTATE 40 E,4,2,0,Interstate (TDOT),False,65.0,3
 EGYPT CENTRAL RD,4,2,0,City of Memphis,False,45.0,2
 N B B KING BLVD,4,1,0,TDOT state route,False,35.0,3
 S MCLEAN BLVD,4,1,2,City of Memphis,False,35.0,4
+DEMOCRAT RD,4,1,0,City of Memphis,False,45.0,5
 N GERMANTOWN PKWY,4,1,0,TDOT state route,False,45.0,7
 S PAULINE ST,4,0,1,City of Memphis,False,30.0,4
 PRIVATE DR,4,0,0,City of Memphis,False,30.0,2
@@ -85,7 +86,6 @@ CENTRAL AVE,3,1,1,City of Memphis,False,40.0,4
 LATHAM ST,3,1,0,City of Memphis,False,30.0,2
 BARRON AVE,3,1,0,City of Memphis,False,30.0,2
 FRAYSER RALEIGH RD,3,1,0,City of Memphis,False,45.0,5
-DEMOCRAT RD,3,1,0,City of Memphis,False,45.0,5
 OLD GETWELL RD,3,1,0,City of Memphis,False,30.0,2
 N WHITE STATION RD,3,1,1,City of Memphis,False,40.0,5
 ROYAL OAKS CV,3,0,1,City of Memphis,False,35.0,2
@@ -96,6 +96,7 @@ JAMES RD,3,0,2,City of Memphis,False,45.0,4
 S MAIN ST,3,0,1,City of Memphis,False,30.0,1
 DEXTER RD,3,0,1,City of Memphis,False,35.0,4
 DUNN AVE,3,0,0,City of Memphis,False,30.0,2
+RHODES AVE,3,0,0,City of Memphis,False,35.0,4
 N AVALON ST,3,0,1,City of Memphis,False,35.0,2
 N MANASSAS ST,3,0,0,City of Memphis,False,30.0,4
 STATE ROUTE 385 E,3,0,2,TDOT state route,False,65.0,3
@@ -140,7 +141,6 @@ AUSTIN PEAY HWY TO JAMES RD,2,0,1,Interstate ramp,False,45.0,1
 BOWEN AVE,2,0,0,City of Memphis,False,30.0,2
 OUTLAND RD,2,0,1,City of Memphis,False,40.0,5
 HICKORY HILL RD,2,0,1,City of Memphis,False,45.0,6
-RHODES AVE,2,0,0,City of Memphis,False,35.0,4
 S GOODLETT ST,2,0,0,City of Memphis,False,40.0,4
 PERSHING AVE,2,0,1,City of Memphis,False,30.0,2
 ELLISTON RD,2,0,2,City of Memphis,False,35.0,2
@@ -186,7 +186,6 @@ S DANNY THOMAS BLVD,2,0,0,TDOT state route,False,35.0,4
 WINDERMERE DR,2,0,0,City of Memphis,False,30.0,2
 WASHINGTON AVE,2,0,1,City of Memphis,False,30.0,2
 COTTONWOOD RD,1,1,0,City of Memphis,False,35.0,2
-N EVERGREEN ST,1,1,0,City of Memphis,False,35.0,3
 DOVECREST RD,1,1,0,City of Memphis,False,30.0,2
 INTERSTATE 55 N,1,1,0,Interstate (TDOT),False,65.0,5
 HUBBARD AVE,1,1,0,City of Memphis,False,30.0,2
@@ -202,6 +201,7 @@ ALOHA AVE,1,1,0,City of Memphis,False,30.0,2
 FAIRBROOK AVE,1,1,0,City of Memphis,False,30.0,2
 S AVALON ST,1,1,0,City of Memphis,False,35.0,2
 CRUMP RD,1,1,0,City of Memphis,False,30.0,2
+N EVERGREEN ST,1,1,0,City of Memphis,False,35.0,3
 N MENDENHALL RD,1,1,0,City of Memphis,False,40.0,4
 NEW WILLOW RD,1,1,0,City of Memphis,False,35.0,2
 DALTON RD,1,1,0,City of Memphis,False,30.0,2

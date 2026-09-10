@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1396) | 1038 (74.4%) | 358 (25.6%) | (in City) | (in City) |
-| NEW segment, surface (n=1363) | 1084 (79.5%) | 279 (20.5%) | 24 sep. | 9 sep. |
+| OLD distance (n=1400) | 1040 (74.3%) | 360 (25.7%) | (in City) | (in City) |
+| NEW segment, surface (n=1367) | 1086 (79.4%) | 281 (20.6%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
@@ -75,10 +75,10 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=184) | 128 (69.6%) | 56 (30.4%) | (in City) | (in City) |
 | NEW segment, surface (n=172) | 124 (72.1%) | 48 (27.9%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 436 of 1396** (reconciles: sum still 1396; fatal 184).
+**Crashes that changed label: 438 of 1400** (reconciles: sum still 1400; fatal 184).
 
 ```
-  TDOT               -> TDOT state route   : 227
+  TDOT               -> TDOT state route   : 229
   TDOT               -> City of Memphis    : 124
   City of Memphis    -> TDOT state route   : 52
   City of Memphis    -> Interstate (TDOT)  : 21
@@ -92,7 +92,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | street | OLD City/TDOT | NEW City/TDOT/Int/Ramp |
 |---|---|---|
 | POPLAR | 30/19 | 29/20/0/0 |
-| LAMAR | 3/31 | 0/34/0/0 |
+| LAMAR | 3/32 | 0/35/0/0 |
 | SUMMER | 6/15 | 1/20/0/0 |
 | UNION | 6/34 | 2/38/0/0 |
 | JACKSON | 3/18 | 1/20/0/0 |
@@ -108,7 +108,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
   300953626 JACKSON AVE          ov10=0.39 oldDistToSR=2.8m  (35.17769,-89.93764)
 ```
 
-**Reframe check:** new surface split City 79.5% vs TDOT 20.5% — City still owns the majority of surface crashes; fatal surface City 72.1% vs TDOT 27.9%.
+**Reframe check:** new surface split City 79.4% vs TDOT 20.6% — City still owns the majority of surface crashes; fatal surface City 72.1% vs TDOT 27.9%.
 
 ## Phase 4 — display layer
 
