@@ -1,6 +1,6 @@
 Street_Name,Total_Crashes,Fatal_Crashes,Serious_Injuries,Dominant_Jurisdiction,Mixed_Jurisdiction,SPDLIMIT,LANES
 POPLAR AVE,49,9,5,City of Memphis,True,40.0,7
-UNION AVE,40,9,11,TDOT state route,False,35.0,6
+UNION AVE,41,9,11,TDOT state route,False,35.0,6
 LAMAR AVE,35,8,9,TDOT state route,False,40.0,7
 WINCHESTER RD,31,5,7,City of Memphis,False,45.0,7
 PARK AVE,25,4,7,City of Memphis,False,40.0,4
@@ -368,6 +368,7 @@ N MCNEIL ST,1,0,0,City of Memphis,False,30.0,2
 MCCLURE RD,1,0,0,City of Memphis,False,35.0,2
 E GLENHOME DR,1,0,0,City of Memphis,False,30.0,2
 HILLBROOK RD,1,0,0,City of Memphis,False,30.0,2
+SHELBY VIEW DR,1,0,0,City of Memphis,False,30.0,2
 S GERMANTOWN PKWY,1,0,1,TDOT state route,False,50.0,6
 COUNTRY VILLAGE DR,1,0,0,City of Memphis,False,30.0,2
 OAKHAVEN RD,1,0,0,City of Memphis,False,30.0,2
