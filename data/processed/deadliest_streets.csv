@@ -151,6 +151,7 @@ HAYNES ST,2,0,0,City of Memphis,False,30.0,2
 S GERMANTOWN RD,2,0,0,City of Memphis,False,35.0,2
 TUTWILER AVE,2,0,0,City of Memphis,False,35.0,2
 SHADY GROVE RD,2,0,0,City of Memphis,False,30.0,2
+RALEIGH SPRINGS MALL,2,0,0,City of Memphis,False,,2
 BALTIC ST,2,0,0,TDOT,True,30.0,2
 CLARKE RD,2,0,1,City of Memphis,False,35.0,2
 ETHEL ST,2,0,0,City of Memphis,False,30.0,2
@@ -290,7 +291,6 @@ COMBS ST,1,0,0,City of Memphis,False,30.0,2
 MISSISSIPPI BLVD,1,0,0,City of Memphis,False,35.0,2
 BASKIN ST,1,0,1,City of Memphis,False,35.0,2
 MILLINGTON RD,1,0,1,City of Memphis,False,30.0,2
-RALEIGH SPRINGS MALL,1,0,0,City of Memphis,False,,2
 FEDEX FORUM ALY,1,0,0,City of Memphis,False,30.0,2
 ASHWOOD ST,1,0,0,City of Memphis,False,30.0,2
 FLETCHER PARK CIR N,1,0,0,City of Memphis,False,30.0,2
@@ -373,6 +373,7 @@ S GERMANTOWN PKWY,1,0,1,TDOT,False,50.0,6
 COUNTRY VILLAGE DR,1,0,0,City of Memphis,False,30.0,2
 WOODROW ST,1,0,0,City of Memphis,False,30.0,2
 OAKHAVEN RD,1,0,0,City of Memphis,False,30.0,2
+RAMILL RD,1,0,0,City of Memphis,False,40.0,4
 MILLINGTON ST,1,0,0,City of Memphis,False,40.0,2
 HELENE RD,1,0,0,City of Memphis,False,30.0,2
 E FAIRWAY AVE,1,0,1,City of Memphis,False,30.0,2
