@@ -57,7 +57,7 @@
   MONROE AVE                 ov10=0.94 name_match=False MTFCC=S1400
 ```
 
-Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (565 streets).
+Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (566 streets).
 
 ## Phase 3 — old (distance) vs new (segment) split
 
@@ -65,22 +65,22 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1414) | 1047 (74.0%) | 367 (26.0%) | (in City) | (in City) |
-| NEW segment, surface (n=1381) | 1095 (79.3%) | 286 (20.7%) | 24 sep. | 9 sep. |
+| OLD distance (n=1416) | 1049 (74.1%) | 367 (25.9%) | (in City) | (in City) |
+| NEW segment, surface (n=1383) | 1096 (79.2%) | 287 (20.8%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=187) | 129 (69.0%) | 58 (31.0%) | (in City) | (in City) |
-| NEW segment, surface (n=175) | 125 (71.4%) | 50 (28.6%) | 10 sep. | 2 sep. |
+| OLD distance (n=188) | 130 (69.1%) | 58 (30.9%) | (in City) | (in City) |
+| NEW segment, surface (n=176) | 125 (71.0%) | 51 (29.0%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 445 of 1414** (reconciles: sum still 1414; fatal 187).
+**Crashes that changed label: 446 of 1416** (reconciles: sum still 1416; fatal 188).
 
 ```
   TDOT               -> TDOT state route   : 234
   TDOT               -> City of Memphis    : 126
-  City of Memphis    -> TDOT state route   : 52
+  City of Memphis    -> TDOT state route   : 53
   City of Memphis    -> Interstate (TDOT)  : 21
   City of Memphis    -> Interstate ramp    : 5
   TDOT               -> Interstate ramp    : 4
@@ -95,7 +95,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | LAMAR | 3/32 | 0/35/0/0 |
 | SUMMER | 6/15 | 1/20/0/0 |
 | UNION | 6/36 | 2/40/0/0 |
-| JACKSON | 3/18 | 1/20/0/0 |
+| JACKSON | 4/18 | 1/21/0/0 |
 | PARK | 28/3 | 31/0/0/0 |
 | GETWELL | 15/4 | 11/8/0/0 |
 | WINCHESTER | 32/0 | 31/0/0/1 |
@@ -108,7 +108,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
   300953626 JACKSON AVE          ov10=0.39 oldDistToSR=2.8m  (35.17769,-89.93764)
 ```
 
-**Reframe check:** new surface split City 79.3% vs TDOT 20.7% — City still owns the majority of surface crashes; fatal surface City 71.4% vs TDOT 28.6%.
+**Reframe check:** new surface split City 79.2% vs TDOT 20.8% — City still owns the majority of surface crashes; fatal surface City 71.0% vs TDOT 29.0%.
 
 ## Phase 4 — display layer
 

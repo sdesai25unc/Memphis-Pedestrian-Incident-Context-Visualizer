@@ -4,8 +4,8 @@ UNION AVE,42,9,11,TDOT,True,35.0,6
 LAMAR AVE,35,8,9,TDOT,False,40.0,7
 WINCHESTER RD,31,5,7,City of Memphis,False,45.0,7
 PARK AVE,25,4,7,City of Memphis,True,40.0,4
+JACKSON AVE,22,3,4,TDOT,True,40.0,4
 E SHELBY DR,21,3,4,TDOT,True,45.0,7
-JACKSON AVE,21,2,4,TDOT,True,40.0,4
 SUMMER AVE,20,4,5,TDOT,True,40.0,7
 S THIRD ST,18,7,3,TDOT,True,45.0,7
 AIRWAYS BLVD,18,4,4,TDOT,True,40.0,7
@@ -373,6 +373,7 @@ S GERMANTOWN PKWY,1,0,1,TDOT,False,50.0,6
 COUNTRY VILLAGE DR,1,0,0,City of Memphis,False,30.0,2
 WOODROW ST,1,0,0,City of Memphis,False,30.0,2
 OAKHAVEN RD,1,0,0,City of Memphis,False,30.0,2
+KENSETT DR,1,0,0,City of Memphis,False,30.0,2
 RAMILL RD,1,0,0,City of Memphis,False,40.0,4
 MILLINGTON ST,1,0,0,City of Memphis,False,40.0,2
 HELENE RD,1,0,0,City of Memphis,False,30.0,2
