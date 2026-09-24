@@ -121,8 +121,8 @@ S SHADY GROVE RD,2,1,0,City of Memphis,True,35.0,5
 N HOLMES ST,2,1,1,City of Memphis,False,35.0,2
 NEW TCHULAHOMA RD,2,1,0,City of Memphis,False,45.0,4
 DECATUR ST,2,1,0,City of Memphis,False,30.0,2
-HUDSON ST,2,1,0,City of Memphis,False,30.0,2
 DEADRICK AVE,2,1,1,City of Memphis,False,35.0,2
+HUDSON ST,2,1,0,City of Memphis,False,30.0,2
 W LEVI RD,2,1,1,City of Memphis,False,35.0,2
 ELDRIDGE AVE,2,1,0,City of Memphis,False,30.0,2
 N BELLEVUE BLVD,2,1,0,City of Memphis,True,35.0,2
@@ -165,6 +165,7 @@ KIMBALL AVE,2,0,1,City of Memphis,False,40.0,2
 S FOURTH ST,2,0,1,TDOT,True,30.0,3
 CHANNEL AVE,2,0,0,City of Memphis,False,40.0,2
 GREY RD,2,0,0,City of Memphis,False,30.0,2
+GOODLETT RD,2,0,2,City of Memphis,False,35.0,2
 MYNDERS AVE,2,0,0,City of Memphis,False,30.0,2
 LESTER ST,2,0,1,City of Memphis,True,30.0,2
 FARMVILLE AVE,2,0,1,City of Memphis,False,30.0,2
@@ -375,6 +376,7 @@ WOODROW ST,1,0,0,City of Memphis,False,30.0,2
 OAKHAVEN RD,1,0,0,City of Memphis,False,30.0,2
 KENSETT DR,1,0,0,City of Memphis,False,30.0,2
 RAMILL RD,1,0,0,City of Memphis,False,40.0,4
+TUNIS CV,1,0,0,City of Memphis,False,25.0,2
 MILLINGTON ST,1,0,0,City of Memphis,False,40.0,2
 HELENE RD,1,0,0,City of Memphis,False,30.0,2
 E FAIRWAY AVE,1,0,1,City of Memphis,False,30.0,2
@@ -423,7 +425,6 @@ FLOWERS ST,1,0,0,City of Memphis,False,30.0,2
 MOUNTAIN TERRACE ST,1,0,0,City of Memphis,False,30.0,2
 LEWEIR ST,1,0,0,City of Memphis,False,30.0,2
 INNOVATION DR,1,0,1,City of Memphis,False,30.0,2
-GOODLETT RD,1,0,1,City of Memphis,False,35.0,2
 MYERS RD,1,0,0,City of Memphis,False,30.0,2
 240 E TO 385 E,1,0,0,City of Memphis,False,45.0,2
 DOGWOOD LN,1,0,0,City of Memphis,False,30.0,2
