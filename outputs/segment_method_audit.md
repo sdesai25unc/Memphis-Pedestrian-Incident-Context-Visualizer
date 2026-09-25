@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1418) | 1051 (74.1%) | 367 (25.9%) | (in City) | (in City) |
-| NEW segment, surface (n=1385) | 1098 (79.3%) | 287 (20.7%) | 24 sep. | 9 sep. |
+| OLD distance (n=1419) | 1052 (74.1%) | 367 (25.9%) | (in City) | (in City) |
+| NEW segment, surface (n=1386) | 1099 (79.3%) | 287 (20.7%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
@@ -75,7 +75,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=188) | 130 (69.1%) | 58 (30.9%) | (in City) | (in City) |
 | NEW segment, surface (n=176) | 125 (71.0%) | 51 (29.0%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 446 of 1418** (reconciles: sum still 1418; fatal 188).
+**Crashes that changed label: 446 of 1419** (reconciles: sum still 1419; fatal 188).
 
 ```
   TDOT               -> TDOT state route   : 234
