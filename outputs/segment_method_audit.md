@@ -57,7 +57,7 @@
   MONROE AVE                 ov10=0.94 name_match=False MTFCC=S1400
 ```
 
-Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (570 streets).
+Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (571 streets).
 
 ## Phase 3 — old (distance) vs new (segment) split
 
@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1424) | 1057 (74.2%) | 367 (25.8%) | (in City) | (in City) |
-| NEW segment, surface (n=1391) | 1104 (79.4%) | 287 (20.6%) | 24 sep. | 9 sep. |
+| OLD distance (n=1426) | 1057 (74.1%) | 369 (25.9%) | (in City) | (in City) |
+| NEW segment, surface (n=1393) | 1105 (79.3%) | 288 (20.7%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
@@ -75,11 +75,11 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=188) | 130 (69.1%) | 58 (30.9%) | (in City) | (in City) |
 | NEW segment, surface (n=176) | 125 (71.0%) | 51 (29.0%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 446 of 1424** (reconciles: sum still 1424; fatal 188).
+**Crashes that changed label: 448 of 1426** (reconciles: sum still 1426; fatal 188).
 
 ```
-  TDOT               -> TDOT state route   : 234
-  TDOT               -> City of Memphis    : 126
+  TDOT               -> TDOT state route   : 235
+  TDOT               -> City of Memphis    : 127
   City of Memphis    -> TDOT state route   : 53
   City of Memphis    -> Interstate (TDOT)  : 21
   City of Memphis    -> Interstate ramp    : 5
@@ -93,7 +93,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 |---|---|---|
 | POPLAR | 30/20 | 29/21/0/0 |
 | LAMAR | 3/32 | 0/35/0/0 |
-| SUMMER | 6/15 | 1/20/0/0 |
+| SUMMER | 6/16 | 1/21/0/0 |
 | UNION | 6/36 | 2/40/0/0 |
 | JACKSON | 4/18 | 1/21/0/0 |
 | PARK | 28/3 | 31/0/0/0 |
@@ -101,14 +101,14 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | WINCHESTER | 32/0 | 31/0/0/1 |
 | AIRWAYS | 8/10 | 12/6/0/0 |
 
-**Join-quality watchlist** — 3 of the 126 TDOT→City crashes sit on a segment that overlaps a state route ≥30% yet was tagged City (possible under-tagged carriageway / name gap — eyeball these; the rest are genuine city cross-streets near intersections):
+**Join-quality watchlist** — 3 of the 127 TDOT→City crashes sit on a segment that overlaps a state route ≥30% yet was tagged City (possible under-tagged carriageway / name gap — eyeball these; the rest are genuine city cross-streets near intersections):
 ```
   300968447 E RAINES RD          ov10=1.00 oldDistToSR=3.5m  (35.03850,-89.91717)
   300981287 N BELLEVUE BLVD      ov10=0.90 oldDistToSR=10.5m  (35.15429,-90.01961)
   300953626 JACKSON AVE          ov10=0.39 oldDistToSR=2.8m  (35.17769,-89.93764)
 ```
 
-**Reframe check:** new surface split City 79.4% vs TDOT 20.6% — City still owns the majority of surface crashes; fatal surface City 71.0% vs TDOT 29.0%.
+**Reframe check:** new surface split City 79.3% vs TDOT 20.7% — City still owns the majority of surface crashes; fatal surface City 71.0% vs TDOT 29.0%.
 
 ## Phase 4 — display layer
 
