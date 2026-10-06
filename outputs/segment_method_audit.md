@@ -57,7 +57,7 @@
   MONROE AVE                 ov10=0.94 name_match=False MTFCC=S1400
 ```
 
-Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (571 streets).
+Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (572 streets).
 
 ## Phase 3 — old (distance) vs new (segment) split
 
@@ -65,17 +65,17 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1426) | 1057 (74.1%) | 369 (25.9%) | (in City) | (in City) |
-| NEW segment, surface (n=1393) | 1105 (79.3%) | 288 (20.7%) | 24 sep. | 9 sep. |
+| OLD distance (n=1429) | 1060 (74.2%) | 369 (25.8%) | (in City) | (in City) |
+| NEW segment, surface (n=1396) | 1108 (79.4%) | 288 (20.6%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=188) | 130 (69.1%) | 58 (30.9%) | (in City) | (in City) |
-| NEW segment, surface (n=176) | 125 (71.0%) | 51 (29.0%) | 10 sep. | 2 sep. |
+| OLD distance (n=189) | 130 (68.8%) | 59 (31.2%) | (in City) | (in City) |
+| NEW segment, surface (n=177) | 126 (71.2%) | 51 (28.8%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 448 of 1426** (reconciles: sum still 1426; fatal 188).
+**Crashes that changed label: 448 of 1429** (reconciles: sum still 1429; fatal 189).
 
 ```
   TDOT               -> TDOT state route   : 235
@@ -108,7 +108,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
   300953626 JACKSON AVE          ov10=0.39 oldDistToSR=2.8m  (35.17769,-89.93764)
 ```
 
-**Reframe check:** new surface split City 79.3% vs TDOT 20.7% — City still owns the majority of surface crashes; fatal surface City 71.0% vs TDOT 29.0%.
+**Reframe check:** new surface split City 79.4% vs TDOT 20.6% — City still owns the majority of surface crashes; fatal surface City 71.2% vs TDOT 28.8%.
 
 ## Phase 4 — display layer
 
