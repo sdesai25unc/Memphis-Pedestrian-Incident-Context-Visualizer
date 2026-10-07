@@ -53,6 +53,7 @@ NATIONAL ST,5,1,3,City of Memphis,False,40.0,4
 DR MARTIN LUTHER KING JR AVE,5,1,0,TDOT,False,35.0,2
 YALE RD,5,1,1,City of Memphis,True,40.0,5
 PRIVATE DR,5,0,0,City of Memphis,False,30.0,2
+SEMMES ST,5,0,0,TDOT,True,30.0,5
 NEW COVINGTON PIKE,5,0,1,City of Memphis,False,45.0,5
 DELLWOOD AVE,5,0,2,City of Memphis,False,35.0,2
 COVINGTON PIKE,5,0,1,City of Memphis,True,40.0,5
@@ -72,7 +73,6 @@ CARNES AVE,4,0,2,City of Memphis,True,30.0,2
 WESLEY DR,4,0,1,City of Memphis,False,30.0,2
 TILLMAN ST,4,0,1,TDOT,True,35.0,4
 EASTMORELAND AVE,4,0,3,City of Memphis,True,30.0,2
-SEMMES ST,4,0,0,TDOT,True,30.0,5
 E PARKWAY N,4,0,1,TDOT,False,40.0,3
 E ALCY RD,4,0,0,City of Memphis,True,35.0,2
 PEABODY PL,4,0,1,TDOT,True,30.0,4
