@@ -2,10 +2,10 @@ Street_Name,Total_Crashes,Fatal_Crashes,Serious_Injuries,Dominant_Jurisdiction,M
 POPLAR AVE,50,10,5,City of Memphis,True,40.0,7
 UNION AVE,42,9,11,TDOT state route,False,35.0,6
 LAMAR AVE,35,8,9,TDOT state route,False,40.0,7
-WINCHESTER RD,31,5,7,City of Memphis,False,45.0,7
+WINCHESTER RD,32,5,7,City of Memphis,False,45.0,7
 PARK AVE,25,4,7,City of Memphis,False,40.0,4
 JACKSON AVE,22,3,4,TDOT state route,False,40.0,4
-SUMMER AVE,21,4,6,TDOT state route,False,40.0,7
+SUMMER AVE,21,5,5,TDOT state route,False,40.0,7
 E SHELBY DR,21,3,4,TDOT state route,False,45.0,7
 S THIRD ST,18,7,3,TDOT state route,False,45.0,7
 AIRWAYS BLVD,18,4,4,City of Memphis,True,40.0,7
@@ -58,6 +58,7 @@ NEW COVINGTON PIKE,5,0,1,TDOT state route,False,45.0,5
 DELLWOOD AVE,5,0,2,City of Memphis,False,35.0,2
 COVINGTON PIKE,5,0,1,TDOT state route,False,40.0,5
 SHELBY OAKS DR,5,0,3,City of Memphis,False,40.0,4
+W RAINES RD,5,0,0,City of Memphis,False,40.0,5
 BEALE ST,5,0,1,City of Memphis,False,30.0,2
 PENDLETON ST,5,0,1,City of Memphis,False,40.0,4
 NORRIS RD,5,0,2,City of Memphis,False,40.0,4
@@ -77,7 +78,6 @@ E PARKWAY N,4,0,1,TDOT state route,False,40.0,3
 E ALCY RD,4,0,0,City of Memphis,False,35.0,2
 PEABODY PL,4,0,1,City of Memphis,False,30.0,4
 RIDGEWAY RD,4,0,0,City of Memphis,False,40.0,5
-W RAINES RD,4,0,0,City of Memphis,False,40.0,5
 SAM COOPER BLVD,3,2,1,City of Memphis,False,40.0,6
 S WHITE STATION RD,3,2,0,City of Memphis,False,40.0,4
 OVERTON CROSSING ST,3,1,0,City of Memphis,False,40.0,5
@@ -167,6 +167,7 @@ KIMBALL AVE,2,0,1,City of Memphis,False,40.0,2
 S FOURTH ST,2,0,1,City of Memphis,False,30.0,3
 CHANNEL AVE,2,0,0,City of Memphis,False,40.0,2
 GREY RD,2,0,0,City of Memphis,False,30.0,2
+NEWBERRY AVE,2,0,0,City of Memphis,False,30.0,2
 GOODLETT RD,2,0,2,City of Memphis,False,35.0,2
 MYNDERS AVE,2,0,0,City of Memphis,False,30.0,2
 LESTER ST,2,0,1,City of Memphis,False,30.0,2
@@ -375,13 +376,13 @@ S GERMANTOWN PKWY,1,0,1,TDOT state route,False,50.0,6
 COUNTRY VILLAGE DR,1,0,0,City of Memphis,False,30.0,2
 WOODROW ST,1,0,0,City of Memphis,False,30.0,2
 OAKHAVEN RD,1,0,0,City of Memphis,False,30.0,2
-NEWBERRY AVE,1,0,0,City of Memphis,False,30.0,2
 T M HENDERSON AVE,1,0,0,City of Memphis,False,30.0,2
 KENSETT DR,1,0,0,City of Memphis,False,30.0,2
 RAMILL RD,1,0,0,City of Memphis,False,40.0,4
 APPLING FARMS PKWY,1,0,0,City of Memphis,False,40.0,2
 N MERTON ST,1,0,0,City of Memphis,False,30.0,2
 TUNIS CV,1,0,0,City of Memphis,False,25.0,2
+KIRBY TERRACE DR,1,0,0,City of Memphis,False,30.0,2
 FARONIA RD,1,0,0,City of Memphis,False,35.0,2
 MILLINGTON ST,1,0,0,City of Memphis,False,40.0,2
 HELENE RD,1,0,0,City of Memphis,False,30.0,2
