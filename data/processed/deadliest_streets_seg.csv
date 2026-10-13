@@ -77,6 +77,7 @@ EASTMORELAND AVE,4,0,3,City of Memphis,False,30.0,2
 E PARKWAY N,4,0,1,TDOT state route,False,40.0,3
 E ALCY RD,4,0,0,City of Memphis,False,35.0,2
 PEABODY PL,4,0,1,City of Memphis,False,30.0,4
+AUSTIN PEAY HWY,4,0,0,TDOT state route,True,45.0,7
 RIDGEWAY RD,4,0,0,City of Memphis,False,40.0,5
 SAM COOPER BLVD,3,2,1,City of Memphis,False,40.0,6
 S WHITE STATION RD,3,2,0,City of Memphis,False,40.0,4
@@ -108,7 +109,6 @@ N HIGHLAND ST,3,0,2,City of Memphis,False,40.0,5
 VOLLINTINE AVE,3,0,0,City of Memphis,False,35.0,4
 CHIMNEYROCK BLVD,3,0,0,City of Memphis,False,30.0,2
 FORD RD,3,0,0,City of Memphis,False,35.0,2
-AUSTIN PEAY HWY,3,0,0,TDOT state route,True,45.0,7
 RANGE LINE RD,3,0,1,City of Memphis,False,40.0,4
 E PERSON AVE,3,0,0,City of Memphis,False,35.0,4
 HESTER RD,3,0,0,City of Memphis,False,35.0,2
