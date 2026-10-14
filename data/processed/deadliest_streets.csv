@@ -168,6 +168,7 @@ S FOURTH ST,2,0,1,TDOT,True,30.0,3
 CHANNEL AVE,2,0,0,City of Memphis,False,40.0,2
 GREY RD,2,0,0,City of Memphis,False,30.0,2
 NEWBERRY AVE,2,0,0,City of Memphis,False,30.0,2
+N PARKWAY,2,0,0,TDOT,False,40.0,2
 GOODLETT RD,2,0,2,City of Memphis,False,35.0,2
 MYNDERS AVE,2,0,0,City of Memphis,False,30.0,2
 LESTER ST,2,0,1,City of Memphis,True,30.0,2
@@ -516,7 +517,6 @@ BIGELOW ST,1,0,1,City of Memphis,False,30.0,2
 DURANT ST,1,0,0,City of Memphis,False,30.0,2
 EYERS RD,1,0,1,City of Memphis,False,30.0,2
 IVY RD,1,0,0,City of Memphis,False,30.0,2
-N PARKWAY,1,0,0,TDOT,False,40.0,2
 WILLIS ST,1,0,0,City of Memphis,False,30.0,2
 MOUNT VERNON RD,1,0,1,City of Memphis,False,30.0,2
 SUMMITT ST,1,0,0,City of Memphis,False,30.0,2

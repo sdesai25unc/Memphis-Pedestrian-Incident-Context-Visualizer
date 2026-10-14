@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1437) | 1067 (74.3%) | 370 (25.7%) | (in City) | (in City) |
-| NEW segment, surface (n=1404) | 1115 (79.4%) | 289 (20.6%) | 24 sep. | 9 sep. |
+| OLD distance (n=1438) | 1067 (74.2%) | 371 (25.8%) | (in City) | (in City) |
+| NEW segment, surface (n=1405) | 1115 (79.4%) | 290 (20.6%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
@@ -75,10 +75,10 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=190) | 130 (68.4%) | 60 (31.6%) | (in City) | (in City) |
 | NEW segment, surface (n=178) | 126 (70.8%) | 52 (29.2%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 449 of 1437** (reconciles: sum still 1437; fatal 190).
+**Crashes that changed label: 450 of 1438** (reconciles: sum still 1438; fatal 190).
 
 ```
-  TDOT               -> TDOT state route   : 236
+  TDOT               -> TDOT state route   : 237
   TDOT               -> City of Memphis    : 127
   City of Memphis    -> TDOT state route   : 53
   City of Memphis    -> Interstate (TDOT)  : 21
