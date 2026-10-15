@@ -24,8 +24,8 @@ N HOLLYWOOD ST,10,4,0,City of Memphis,True,40.0,2
 RALEIGH LAGRANGE RD,10,3,2,City of Memphis,False,45.0,5
 SYCAMORE VIEW RD,10,2,3,City of Memphis,False,45.0,7
 FRAYSER BLVD,10,1,3,City of Memphis,False,40.0,4
+RALEIGH MILLINGTON RD,9,3,2,City of Memphis,False,40.0,4
 AMERICAN WAY,9,2,3,City of Memphis,True,45.0,5
-RALEIGH MILLINGTON RD,8,3,2,City of Memphis,False,40.0,4
 INTERSTATE 240 W,8,2,2,City of Memphis,True,65.0,3
 E MCLEMORE AVE,8,2,2,City of Memphis,True,35.0,2
 QUINCE RD,8,1,3,City of Memphis,False,40.0,4
@@ -358,7 +358,6 @@ WORTHINGTON ST,1,0,1,City of Memphis,False,30.0,2
 SHELLEY RENEE LN,1,0,0,City of Memphis,False,30.0,2
 ROBIN HOOD LN,1,0,1,City of Memphis,False,35.0,2
 WALES AVE,1,0,0,City of Memphis,False,35.0,2
-VANDALIA ST,1,0,0,City of Memphis,False,30.0,2
 ESTATE DR,1,0,0,City of Memphis,False,30.0,5
 PINEBROOK DR,1,0,1,City of Memphis,False,30.0,2
 WHITTEN RD TO 40W,1,0,0,City of Memphis,False,45.0,1
@@ -380,6 +379,7 @@ OAKHAVEN RD,1,0,0,City of Memphis,False,30.0,2
 LORAINE DR,1,0,0,City of Memphis,False,30.0,2
 T M HENDERSON AVE,1,0,0,City of Memphis,False,30.0,2
 KENSETT DR,1,0,0,City of Memphis,False,30.0,2
+VANDALIA ST,1,0,0,City of Memphis,False,30.0,2
 RAMILL RD,1,0,0,City of Memphis,False,40.0,4
 APPLING FARMS PKWY,1,0,0,City of Memphis,False,40.0,2
 N MERTON ST,1,0,0,City of Memphis,False,30.0,2
