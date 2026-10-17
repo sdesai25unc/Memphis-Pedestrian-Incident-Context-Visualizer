@@ -1,6 +1,6 @@
 Street_Name,Total_Crashes,Fatal_Crashes,Serious_Injuries,Dominant_Jurisdiction,Mixed_Jurisdiction,SPDLIMIT,LANES
 POPLAR AVE,50,10,5,City of Memphis,True,40.0,7
-UNION AVE,42,9,11,TDOT,True,35.0,6
+UNION AVE,43,9,11,TDOT,True,35.0,6
 LAMAR AVE,35,8,9,TDOT,False,40.0,7
 WINCHESTER RD,32,5,7,City of Memphis,False,45.0,7
 PARK AVE,25,4,7,City of Memphis,True,40.0,4
@@ -26,12 +26,12 @@ SYCAMORE VIEW RD,10,2,3,City of Memphis,False,45.0,7
 FRAYSER BLVD,10,1,3,City of Memphis,False,40.0,4
 RALEIGH MILLINGTON RD,9,3,2,City of Memphis,False,40.0,4
 AMERICAN WAY,9,2,3,City of Memphis,True,45.0,5
+ADAMS AVE,9,0,5,City of Memphis,True,30.0,2
 INTERSTATE 240 W,8,2,2,City of Memphis,True,65.0,3
 E MCLEMORE AVE,8,2,2,City of Memphis,True,35.0,2
 QUINCE RD,8,1,3,City of Memphis,False,40.0,4
 WHITNEY AVE,8,1,2,City of Memphis,True,40.0,2
 E HOLMES RD,8,1,2,City of Memphis,True,40.0,2
-ADAMS AVE,8,0,4,City of Memphis,True,30.0,2
 THOMAS ST,8,0,1,TDOT,True,40.0,2
 KERR AVE,8,0,1,TDOT,True,35.0,3
 E MALLORY AVE,7,2,1,City of Memphis,False,40.0,2
