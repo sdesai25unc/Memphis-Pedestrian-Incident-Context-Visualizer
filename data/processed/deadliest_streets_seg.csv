@@ -26,9 +26,9 @@ SYCAMORE VIEW RD,10,2,3,City of Memphis,False,45.0,7
 FRAYSER BLVD,10,1,3,City of Memphis,False,40.0,4
 RALEIGH MILLINGTON RD,9,3,2,City of Memphis,False,40.0,4
 AMERICAN WAY,9,2,3,City of Memphis,False,45.0,5
+E MCLEMORE AVE,9,2,2,City of Memphis,False,35.0,2
 ADAMS AVE,9,0,5,City of Memphis,False,30.0,2
 INTERSTATE 240 W,8,2,2,Interstate (TDOT),False,65.0,3
-E MCLEMORE AVE,8,2,2,City of Memphis,False,35.0,2
 QUINCE RD,8,1,3,City of Memphis,False,40.0,4
 WHITNEY AVE,8,1,2,City of Memphis,False,40.0,2
 E HOLMES RD,8,1,2,City of Memphis,False,40.0,2
@@ -57,6 +57,7 @@ SEMMES ST,5,0,0,City of Memphis,False,30.0,5
 NEW COVINGTON PIKE,5,0,1,TDOT state route,False,45.0,5
 DELLWOOD AVE,5,0,2,City of Memphis,False,35.0,2
 COVINGTON PIKE,5,0,1,TDOT state route,False,40.0,5
+AUSTIN PEAY HWY,5,0,1,TDOT state route,True,45.0,7
 SHELBY OAKS DR,5,0,3,City of Memphis,False,40.0,4
 W RAINES RD,5,0,0,City of Memphis,False,40.0,5
 BEALE ST,5,0,1,City of Memphis,False,30.0,2
@@ -77,7 +78,6 @@ EASTMORELAND AVE,4,0,3,City of Memphis,False,30.0,2
 E PARKWAY N,4,0,1,TDOT state route,False,40.0,3
 E ALCY RD,4,0,0,City of Memphis,False,35.0,2
 PEABODY PL,4,0,1,City of Memphis,False,30.0,4
-AUSTIN PEAY HWY,4,0,0,TDOT state route,True,45.0,7
 RIDGEWAY RD,4,0,0,City of Memphis,False,40.0,5
 SAM COOPER BLVD,3,2,1,City of Memphis,False,40.0,6
 S WHITE STATION RD,3,2,0,City of Memphis,False,40.0,4

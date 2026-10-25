@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1448) | 1075 (74.2%) | 373 (25.8%) | (in City) | (in City) |
-| NEW segment, surface (n=1415) | 1123 (79.4%) | 292 (20.6%) | 24 sep. | 9 sep. |
+| OLD distance (n=1450) | 1076 (74.2%) | 374 (25.8%) | (in City) | (in City) |
+| NEW segment, surface (n=1417) | 1124 (79.3%) | 293 (20.7%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
@@ -75,10 +75,10 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=190) | 130 (68.4%) | 60 (31.6%) | (in City) | (in City) |
 | NEW segment, surface (n=178) | 126 (70.8%) | 52 (29.2%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 452 of 1448** (reconciles: sum still 1448; fatal 190).
+**Crashes that changed label: 453 of 1450** (reconciles: sum still 1450; fatal 190).
 
 ```
-  TDOT               -> TDOT state route   : 239
+  TDOT               -> TDOT state route   : 240
   TDOT               -> City of Memphis    : 127
   City of Memphis    -> TDOT state route   : 53
   City of Memphis    -> Interstate (TDOT)  : 21
@@ -108,7 +108,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
   300953626 JACKSON AVE          ov10=0.39 oldDistToSR=2.8m  (35.17769,-89.93764)
 ```
 
-**Reframe check:** new surface split City 79.4% vs TDOT 20.6% — City still owns the majority of surface crashes; fatal surface City 70.8% vs TDOT 29.2%.
+**Reframe check:** new surface split City 79.3% vs TDOT 20.7% — City still owns the majority of surface crashes; fatal surface City 70.8% vs TDOT 29.2%.
 
 ## Phase 4 — display layer
 
