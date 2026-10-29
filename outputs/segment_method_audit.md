@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1451) | 1077 (74.2%) | 374 (25.8%) | (in City) | (in City) |
-| NEW segment, surface (n=1418) | 1125 (79.3%) | 293 (20.7%) | 24 sep. | 9 sep. |
+| OLD distance (n=1452) | 1078 (74.2%) | 374 (25.8%) | (in City) | (in City) |
+| NEW segment, surface (n=1419) | 1126 (79.4%) | 293 (20.6%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
@@ -75,7 +75,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=190) | 130 (68.4%) | 60 (31.6%) | (in City) | (in City) |
 | NEW segment, surface (n=178) | 126 (70.8%) | 52 (29.2%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 453 of 1451** (reconciles: sum still 1451; fatal 190).
+**Crashes that changed label: 453 of 1452** (reconciles: sum still 1452; fatal 190).
 
 ```
   TDOT               -> TDOT state route   : 240
@@ -91,7 +91,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | street | OLD City/TDOT | NEW City/TDOT/Int/Ramp |
 |---|---|---|
-| POPLAR | 30/20 | 29/21/0/0 |
+| POPLAR | 31/20 | 30/21/0/0 |
 | LAMAR | 3/32 | 0/35/0/0 |
 | SUMMER | 6/16 | 1/21/0/0 |
 | UNION | 6/37 | 2/41/0/0 |
@@ -108,7 +108,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
   300953626 JACKSON AVE          ov10=0.39 oldDistToSR=2.8m  (35.17769,-89.93764)
 ```
 
-**Reframe check:** new surface split City 79.3% vs TDOT 20.7% — City still owns the majority of surface crashes; fatal surface City 70.8% vs TDOT 29.2%.
+**Reframe check:** new surface split City 79.4% vs TDOT 20.6% — City still owns the majority of surface crashes; fatal surface City 70.8% vs TDOT 29.2%.
 
 ## Phase 4 — display layer
 
