@@ -111,6 +111,7 @@ CLARKE RD,3,0,1,City of Memphis,False,35.0,2
 CHIMNEYROCK BLVD,3,0,0,City of Memphis,False,30.0,2
 FORD RD,3,0,0,City of Memphis,False,35.0,2
 RANGE LINE RD,3,0,1,City of Memphis,False,40.0,4
+N CLEVELAND ST,3,0,0,City of Memphis,False,35.0,4
 E PERSON AVE,3,0,0,City of Memphis,False,35.0,4
 HESTER RD,3,0,0,City of Memphis,False,35.0,2
 E E H CRUMP BLVD,3,0,2,TDOT state route,False,40.0,6
@@ -188,7 +189,6 @@ WALKER AVE,2,0,0,City of Memphis,False,35.0,2
 NEW ALLEN RD,2,0,2,City of Memphis,False,50.0,2
 E TRIGG AVE,2,0,2,City of Memphis,False,35.0,2
 BROWN AVE,2,0,0,City of Memphis,False,30.0,2
-N CLEVELAND ST,2,0,0,City of Memphis,False,35.0,4
 S DANNY THOMAS BLVD,2,0,0,TDOT state route,False,35.0,4
 WINDERMERE DR,2,0,0,City of Memphis,False,30.0,2
 WASHINGTON AVE,2,0,1,City of Memphis,False,30.0,2
