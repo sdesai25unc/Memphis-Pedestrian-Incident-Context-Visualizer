@@ -14,9 +14,9 @@ ELVIS PRESLEY BLVD,18,2,3,TDOT,True,40.0,5
 GETWELL RD,16,2,6,City of Memphis,True,40.0,7
 KNIGHT ARNOLD RD,16,2,4,City of Memphis,False,40.0,4
 MADISON AVE,15,3,1,City of Memphis,True,35.0,3
+CHELSEA AVE,15,2,5,City of Memphis,True,40.0,4
 N WATKINS ST,15,1,1,City of Memphis,False,40.0,5
 MILLBRANCH RD,15,0,5,City of Memphis,False,40.0,4
-CHELSEA AVE,14,2,4,City of Memphis,True,40.0,4
 E BROOKS RD,13,3,5,City of Memphis,True,45.0,5
 S PARKWAY E,12,2,4,City of Memphis,True,35.0,5
 S PERKINS RD,11,3,2,City of Memphis,False,40.0,7
@@ -88,6 +88,7 @@ LATHAM ST,3,1,0,City of Memphis,False,30.0,2
 BARRON AVE,3,1,0,City of Memphis,False,30.0,2
 FRAYSER RALEIGH RD,3,1,0,City of Memphis,False,45.0,5
 OLD GETWELL RD,3,1,0,City of Memphis,False,30.0,2
+KIMBALL AVE,3,1,1,City of Memphis,False,40.0,2
 N WHITE STATION RD,3,1,1,TDOT,True,40.0,5
 ROYAL OAKS CV,3,0,1,City of Memphis,False,35.0,2
 VANCE AVE,3,0,0,TDOT,False,30.0,2
@@ -165,7 +166,6 @@ CELLA ST,2,0,0,City of Memphis,False,30.0,2
 GRACELAND DR,2,0,0,City of Memphis,False,30.0,2
 GRUBER DR,2,0,0,City of Memphis,False,30.0,2
 US HIGHWAY 64,2,0,1,TDOT,False,45.0,5
-KIMBALL AVE,2,0,1,City of Memphis,False,40.0,2
 S FOURTH ST,2,0,1,TDOT,True,30.0,3
 CHANNEL AVE,2,0,0,City of Memphis,False,40.0,2
 GREY RD,2,0,0,City of Memphis,False,30.0,2
