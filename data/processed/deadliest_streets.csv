@@ -11,9 +11,9 @@ S THIRD ST,18,7,3,TDOT,True,45.0,7
 AIRWAYS BLVD,18,4,4,TDOT,True,40.0,7
 E RAINES RD,18,3,3,City of Memphis,True,40.0,5
 ELVIS PRESLEY BLVD,18,2,3,TDOT,True,40.0,5
+MADISON AVE,16,3,1,City of Memphis,True,35.0,3
 GETWELL RD,16,2,6,City of Memphis,True,40.0,7
 KNIGHT ARNOLD RD,16,2,4,City of Memphis,False,40.0,4
-MADISON AVE,15,3,1,City of Memphis,True,35.0,3
 CHELSEA AVE,15,2,5,City of Memphis,True,40.0,4
 N WATKINS ST,15,1,1,City of Memphis,False,40.0,5
 MILLBRANCH RD,15,0,5,City of Memphis,False,40.0,4
@@ -389,6 +389,7 @@ TUNIS CV,1,0,0,City of Memphis,False,25.0,2
 PIKES PEAK AVE,1,0,0,City of Memphis,False,30.0,2
 KIRBY TERRACE DR,1,0,0,City of Memphis,False,30.0,2
 FARONIA RD,1,0,0,City of Memphis,False,35.0,2
+N THIRD ST,1,0,0,TDOT,False,35.0,5
 MILLINGTON ST,1,0,0,City of Memphis,False,40.0,2
 HELENE RD,1,0,0,City of Memphis,False,30.0,2
 E FAIRWAY AVE,1,0,1,City of Memphis,False,30.0,2
