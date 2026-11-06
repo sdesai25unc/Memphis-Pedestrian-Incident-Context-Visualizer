@@ -19,8 +19,8 @@ N WATKINS ST,15,1,1,City of Memphis,False,40.0,5
 MILLBRANCH RD,15,0,5,City of Memphis,False,40.0,4
 E BROOKS RD,13,3,5,City of Memphis,False,45.0,5
 S PARKWAY E,12,2,4,City of Memphis,False,35.0,5
+N HOLLYWOOD ST,11,4,0,City of Memphis,False,40.0,2
 S PERKINS RD,11,3,2,City of Memphis,False,40.0,7
-N HOLLYWOOD ST,10,4,0,City of Memphis,False,40.0,2
 RALEIGH LAGRANGE RD,10,3,2,City of Memphis,False,45.0,5
 SYCAMORE VIEW RD,10,2,3,City of Memphis,False,45.0,7
 FRAYSER BLVD,10,1,3,City of Memphis,False,40.0,4
@@ -204,12 +204,12 @@ SUMMER HILLS CIR,1,1,0,City of Memphis,False,25.0,2
 MOUNT HOOD ST,1,1,0,City of Memphis,False,30.0,2
 DALLAS ST,1,1,0,City of Memphis,False,30.0,2
 A W WILLIS AVE,1,1,0,City of Memphis,False,35.0,5
-ALOHA AVE,1,1,0,City of Memphis,False,30.0,2
 FAIRBROOK AVE,1,1,0,City of Memphis,False,30.0,2
 S AVALON ST,1,1,0,City of Memphis,False,35.0,2
 CRUMP RD,1,1,0,City of Memphis,False,30.0,2
 N EVERGREEN ST,1,1,0,City of Memphis,False,35.0,3
 S CAMILLA ST,1,1,0,City of Memphis,False,30.0,2
+ALOHA AVE,1,1,0,City of Memphis,False,30.0,2
 N MENDENHALL RD,1,1,0,City of Memphis,False,40.0,4
 NEW WILLOW RD,1,1,0,City of Memphis,False,35.0,2
 DALTON RD,1,1,0,City of Memphis,False,30.0,2
