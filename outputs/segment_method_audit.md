@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1464) | 1085 (74.1%) | 379 (25.9%) | (in City) | (in City) |
-| NEW segment, surface (n=1431) | 1136 (79.4%) | 295 (20.6%) | 24 sep. | 9 sep. |
+| OLD distance (n=1465) | 1086 (74.1%) | 379 (25.9%) | (in City) | (in City) |
+| NEW segment, surface (n=1432) | 1137 (79.4%) | 295 (20.6%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
@@ -75,7 +75,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=191) | 131 (68.6%) | 60 (31.4%) | (in City) | (in City) |
 | NEW segment, surface (n=179) | 127 (70.9%) | 52 (29.1%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 458 of 1464** (reconciles: sum still 1464; fatal 191).
+**Crashes that changed label: 458 of 1465** (reconciles: sum still 1465; fatal 191).
 
 ```
   TDOT               -> TDOT state route   : 242
@@ -99,7 +99,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | PARK | 28/3 | 31/0/0/0 |
 | GETWELL | 15/4 | 11/8/0/0 |
 | WINCHESTER | 33/0 | 32/0/0/1 |
-| AIRWAYS | 8/10 | 12/6/0/0 |
+| AIRWAYS | 9/10 | 13/6/0/0 |
 
 **Join-quality watchlist** — 3 of the 130 TDOT→City crashes sit on a segment that overlaps a state route ≥30% yet was tagged City (possible under-tagged carriageway / name gap — eyeball these; the rest are genuine city cross-streets near intersections):
 ```
