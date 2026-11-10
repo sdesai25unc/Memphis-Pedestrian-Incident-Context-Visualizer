@@ -57,7 +57,7 @@
   MONROE AVE                 ov10=0.94 name_match=False MTFCC=S1400
 ```
 
-Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (581 streets).
+Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (582 streets).
 
 ## Phase 3 — old (distance) vs new (segment) split
 
@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1465) | 1086 (74.1%) | 379 (25.9%) | (in City) | (in City) |
-| NEW segment, surface (n=1432) | 1137 (79.4%) | 295 (20.6%) | 24 sep. | 9 sep. |
+| OLD distance (n=1467) | 1087 (74.1%) | 380 (25.9%) | (in City) | (in City) |
+| NEW segment, surface (n=1434) | 1138 (79.4%) | 296 (20.6%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
@@ -75,10 +75,10 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=191) | 131 (68.6%) | 60 (31.4%) | (in City) | (in City) |
 | NEW segment, surface (n=179) | 127 (70.9%) | 52 (29.1%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 458 of 1465** (reconciles: sum still 1465; fatal 191).
+**Crashes that changed label: 459 of 1467** (reconciles: sum still 1467; fatal 191).
 
 ```
-  TDOT               -> TDOT state route   : 242
+  TDOT               -> TDOT state route   : 243
   TDOT               -> City of Memphis    : 130
   City of Memphis    -> TDOT state route   : 53
   City of Memphis    -> Interstate (TDOT)  : 21
@@ -93,7 +93,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 |---|---|---|
 | POPLAR | 32/20 | 31/21/0/0 |
 | LAMAR | 3/32 | 0/35/0/0 |
-| SUMMER | 6/16 | 1/21/0/0 |
+| SUMMER | 6/17 | 1/22/0/0 |
 | UNION | 6/37 | 2/41/0/0 |
 | JACKSON | 4/18 | 1/21/0/0 |
 | PARK | 28/3 | 31/0/0/0 |
