@@ -57,7 +57,7 @@
   MONROE AVE                 ov10=0.94 name_match=False MTFCC=S1400
 ```
 
-Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (582 streets).
+Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest_streets_seg.csv (583 streets).
 
 ## Phase 3 — old (distance) vs new (segment) split
 
@@ -65,8 +65,8 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 
 | method | City | TDOT | Interstate | Interstate ramp |
 |---|---|---|---|---|
-| OLD distance (n=1468) | 1087 (74.0%) | 381 (26.0%) | (in City) | (in City) |
-| NEW segment, surface (n=1435) | 1138 (79.3%) | 297 (20.7%) | 24 sep. | 9 sep. |
+| OLD distance (n=1469) | 1087 (74.0%) | 382 (26.0%) | (in City) | (in City) |
+| NEW segment, surface (n=1436) | 1139 (79.3%) | 297 (20.7%) | 24 sep. | 9 sep. |
 
 **FATAL crashes**
 
@@ -75,11 +75,11 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | OLD distance (n=191) | 131 (68.6%) | 60 (31.4%) | (in City) | (in City) |
 | NEW segment, surface (n=179) | 127 (70.9%) | 52 (29.1%) | 10 sep. | 2 sep. |
 
-**Crashes that changed label: 460 of 1468** (reconciles: sum still 1468; fatal 191).
+**Crashes that changed label: 461 of 1469** (reconciles: sum still 1469; fatal 191).
 
 ```
   TDOT               -> TDOT state route   : 244
-  TDOT               -> City of Memphis    : 130
+  TDOT               -> City of Memphis    : 131
   City of Memphis    -> TDOT state route   : 53
   City of Memphis    -> Interstate (TDOT)  : 21
   City of Memphis    -> Interstate ramp    : 5
@@ -101,7 +101,7 @@ Wrote shelby_crashes_named_seg.csv, shelby_crashes_classified_seg.csv, deadliest
 | WINCHESTER | 33/0 | 32/0/0/1 |
 | AIRWAYS | 9/10 | 13/6/0/0 |
 
-**Join-quality watchlist** — 3 of the 130 TDOT→City crashes sit on a segment that overlaps a state route ≥30% yet was tagged City (possible under-tagged carriageway / name gap — eyeball these; the rest are genuine city cross-streets near intersections):
+**Join-quality watchlist** — 3 of the 131 TDOT→City crashes sit on a segment that overlaps a state route ≥30% yet was tagged City (possible under-tagged carriageway / name gap — eyeball these; the rest are genuine city cross-streets near intersections):
 ```
   300968447 E RAINES RD          ov10=1.00 oldDistToSR=3.5m  (35.03850,-89.91717)
   300981287 N BELLEVUE BLVD      ov10=0.90 oldDistToSR=10.5m  (35.15429,-90.01961)

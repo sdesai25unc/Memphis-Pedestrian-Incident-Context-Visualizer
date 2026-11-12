@@ -16,15 +16,15 @@
 
 ## 3. Union crashes (within 30 m of centerline)
 
-- Total: **49** (9 fatal)  *(deadliest-list anchor ≈ 36/8; the 30 m buffer catches a few more than the nearest-street assignment)*.
-- **Crossing-relevant (On Roadway / In Crosswalk): 43** (8 fatal) — the headline set.
+- Total: **50** (9 fatal)  *(deadliest-list anchor ≈ 36/8; the 30 m buffer catches a few more than the nearest-street assignment)*.
+- **Crossing-relevant (On Roadway / In Crosswalk): 44** (8 fatal) — the headline set.
 - Non-crossing (Outside Traffic / Not on Roadway / Unknown): 6 (1 fatal) — reported, excluded from the distance stat.
 
 ## 4. Distance from a crossing-relevant crash to the nearest safe crossing (along-corridor)
 
-- mean **173 ft (53 m)**, median **8 ft (2 m)**, max 864 ft (263 m).
-- struck **> 100 ft** from the nearest safe crossing: **18/43 (42%)**; **> 250 ft**: **12/43 (28%)**.
-- **Bimodal split:** **25 struck AT/near a Union crossing** (≤100 ft), **12 struck in a gap** (>250 ft), 6 in between — of 43 crossing-relevant.
+- mean **172 ft (52 m)**, median **24 ft (7 m)**, max 864 ft (263 m).
+- struck **> 100 ft** from the nearest safe crossing: **19/44 (43%)**; **> 250 ft**: **12/44 (27%)**.
+- **Bimodal split:** **25 struck AT/near a Union crossing** (≤100 ft), **12 struck in a gap** (>250 ft), 7 in between — of 44 crossing-relevant.
 - fatal crossing-relevant crashes' distances: 0 ft (0 m), 3 ft (1 m), 3 ft (1 m), 65 ft (20 m), 244 ft (74 m), 246 ft (75 m), 729 ft (222 m), 864 ft (263 m).
 
 ## 5. Longest gap vs FHWA best-practice spacing
