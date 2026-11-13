@@ -14,8 +14,8 @@ ELVIS PRESLEY BLVD,18,2,3,TDOT,True,40.0,5
 MADISON AVE,16,3,1,City of Memphis,True,35.0,3
 GETWELL RD,16,2,6,City of Memphis,True,40.0,7
 KNIGHT ARNOLD RD,16,2,4,City of Memphis,False,40.0,4
+N WATKINS ST,16,1,1,City of Memphis,False,40.0,5
 CHELSEA AVE,15,2,5,City of Memphis,True,40.0,4
-N WATKINS ST,15,1,1,City of Memphis,False,40.0,5
 MILLBRANCH RD,15,0,5,City of Memphis,False,40.0,4
 E BROOKS RD,13,3,5,City of Memphis,True,45.0,5
 S PARKWAY E,12,2,4,City of Memphis,True,35.0,5
@@ -45,6 +45,7 @@ WALNUT GROVE RD,6,2,2,TDOT,True,35.0,5
 S HIGHLAND ST,6,2,0,City of Memphis,False,35.0,5
 JEFFERSON AVE,6,1,0,City of Memphis,True,40.0,4
 N DUNLAP ST,6,1,0,City of Memphis,True,30.0,2
+PRIVATE DR,6,0,0,City of Memphis,False,25.0,2
 MOUNT MORIAH ROAD EXT,6,0,1,City of Memphis,False,40.0,5
 INTERSTATE 40 W,5,2,1,City of Memphis,False,65.0,4
 INTERSTATE 240 E,5,2,1,City of Memphis,True,65.0,3
@@ -52,7 +53,6 @@ ALLEY,5,2,0,City of Memphis,False,25.0,1
 NATIONAL ST,5,1,3,City of Memphis,False,40.0,4
 DR MARTIN LUTHER KING JR AVE,5,1,0,TDOT,False,35.0,2
 YALE RD,5,1,1,City of Memphis,True,40.0,5
-PRIVATE DR,5,0,0,City of Memphis,False,30.0,2
 TILLMAN ST,5,0,1,TDOT,True,35.0,4
 SEMMES ST,5,0,0,TDOT,True,30.0,5
 NEW COVINGTON PIKE,5,0,1,City of Memphis,False,45.0,5
