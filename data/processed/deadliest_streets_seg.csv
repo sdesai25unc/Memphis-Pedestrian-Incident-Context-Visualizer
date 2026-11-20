@@ -3,7 +3,7 @@ POPLAR AVE,52,10,5,City of Memphis,True,40.0,7
 UNION AVE,44,9,11,TDOT state route,False,35.0,6
 LAMAR AVE,35,8,9,TDOT state route,False,40.0,7
 WINCHESTER RD,32,5,7,City of Memphis,False,45.0,7
-PARK AVE,25,4,7,City of Memphis,False,40.0,4
+PARK AVE,26,4,7,City of Memphis,False,40.0,4
 SUMMER AVE,22,5,5,TDOT state route,False,40.0,7
 JACKSON AVE,22,3,4,TDOT state route,False,40.0,4
 E SHELBY DR,21,3,4,TDOT state route,False,45.0,7
@@ -397,6 +397,7 @@ MASON RD,1,0,0,City of Memphis,False,35.0,2
 EMERALD ST,1,0,0,City of Memphis,False,35.0,2
 N THIRD ST,1,0,0,TDOT state route,False,35.0,5
 N PERKINS RD,1,0,0,City of Memphis,False,35.0,2
+POPLAR PINES DR,1,0,0,City of Memphis,False,30.0,2
 MILLINGTON ST,1,0,0,City of Memphis,False,40.0,2
 HELENE RD,1,0,0,City of Memphis,False,30.0,2
 E FAIRWAY AVE,1,0,1,City of Memphis,False,30.0,2
