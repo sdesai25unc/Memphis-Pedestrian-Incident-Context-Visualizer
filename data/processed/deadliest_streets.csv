@@ -1,5 +1,5 @@
 Street_Name,Total_Crashes,Fatal_Crashes,Serious_Injuries,Dominant_Jurisdiction,Mixed_Jurisdiction,SPDLIMIT,LANES
-POPLAR AVE,52,10,5,City of Memphis,True,40.0,7
+POPLAR AVE,53,10,5,City of Memphis,True,40.0,7
 UNION AVE,44,9,11,TDOT,True,35.0,6
 LAMAR AVE,35,8,9,TDOT,False,40.0,7
 WINCHESTER RD,32,5,7,City of Memphis,False,45.0,7
@@ -43,6 +43,7 @@ SOUTHERN AVE,7,0,0,City of Memphis,False,35.0,2
 S MENDENHALL RD,7,0,2,City of Memphis,False,40.0,7
 WALNUT GROVE RD,6,2,2,TDOT,True,35.0,5
 S HIGHLAND ST,6,2,0,City of Memphis,False,35.0,5
+ALLEY,6,2,0,City of Memphis,False,25.0,1
 JEFFERSON AVE,6,1,0,City of Memphis,True,40.0,4
 N DUNLAP ST,6,1,0,City of Memphis,True,30.0,2
 PRIVATE DR,6,0,0,City of Memphis,False,25.0,2
@@ -50,7 +51,6 @@ MOUNT MORIAH ROAD EXT,6,0,1,City of Memphis,False,40.0,5
 NEW COVINGTON PIKE,6,0,1,City of Memphis,False,45.0,5
 INTERSTATE 40 W,5,2,1,City of Memphis,False,65.0,4
 INTERSTATE 240 E,5,2,1,City of Memphis,True,65.0,3
-ALLEY,5,2,0,City of Memphis,False,25.0,1
 NATIONAL ST,5,1,3,City of Memphis,False,40.0,4
 DR MARTIN LUTHER KING JR AVE,5,1,0,TDOT,False,35.0,2
 YALE RD,5,1,1,City of Memphis,True,40.0,5
@@ -111,6 +111,7 @@ RALEIGH SPRINGS MALL,3,0,1,City of Memphis,False,,2
 VOLLINTINE AVE,3,0,0,City of Memphis,False,35.0,4
 CLARKE RD,3,0,1,City of Memphis,False,35.0,2
 CHIMNEYROCK BLVD,3,0,0,City of Memphis,False,30.0,2
+S FOURTH ST,3,0,1,TDOT,True,30.0,3
 FORD RD,3,0,0,City of Memphis,True,35.0,2
 GREY RD,3,0,0,City of Memphis,False,30.0,2
 RANGE LINE RD,3,0,1,City of Memphis,False,40.0,4
@@ -167,7 +168,6 @@ CELLA ST,2,0,0,City of Memphis,False,30.0,2
 GRACELAND DR,2,0,0,City of Memphis,False,30.0,2
 GRUBER DR,2,0,0,City of Memphis,False,30.0,2
 US HIGHWAY 64,2,0,1,TDOT,False,45.0,5
-S FOURTH ST,2,0,1,TDOT,True,30.0,3
 CHANNEL AVE,2,0,0,City of Memphis,False,40.0,2
 NEWBERRY AVE,2,0,0,City of Memphis,False,30.0,2
 N PAULINE ST,2,0,0,City of Memphis,False,30.0,5
